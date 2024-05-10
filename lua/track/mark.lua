@@ -13,6 +13,7 @@ local sign_group = "TrackSigns"
 local sign_name = "TrackSign"
 local hl = "TrackColor"
 local id_count = 0
+local ns_id = vim.api.nvim_create_namespace("Track")
 ---@type {[string]: {[string]: track.Mark}}
 -- {file: {id: track.Mark}}
 local mark_list = {}
@@ -73,6 +74,14 @@ local mark = function(bufnr, lnum, id, desc)
 			lnum = lnum,
 			priority = static.config.sign.priority,
 		})
+		vim.api.nvim_buf_set_extmark(bufnr, ns_id, lnum - 1, 0, {
+			id = id,
+			virt_text = { {
+				string.rep(" ", 8) .. desc,
+				hl,
+			} },
+			virt_text_pos = "eol",
+		})
 
 		---@type track.Mark
 		local cur_mark = {
@@ -95,7 +104,7 @@ local mark = function(bufnr, lnum, id, desc)
 	vim.ui.input({
 		prompt = "Description: ",
 	}, function(input)
-		desc = input
+		desc = input or ""
 		do_mark()
 	end)
 end
@@ -113,6 +122,7 @@ local unmark = function(bufnr, lnum)
 	end
 
 	vim.fn.sign_unplace(sign_group, { id = target_mark.id })
+	vim.api.nvim_buf_del_extmark(bufnr, ns_id, target_mark.id)
 
 	local file = vim.api.nvim_buf_get_name(bufnr)
 	mark_list[file][target_mark.id] = nil
@@ -235,16 +245,21 @@ end
 
 -- # remove
 local remove = function()
-	local marks = {}
+	local bufs = {}
+	core.lua.list.each(utils.get_buf_list(), function(bufnr)
+		local file = vim.api.nvim_buf_get_name(bufnr)
+		if not file then
+			return
+		end
+		bufs[file] = bufnr
+	end)
 	core.lua.table.each(mark_list, function(_, value)
-		core.lua.table.each(value, function(_, v)
-			table.insert(marks, {
-				id = v.id,
-				group = sign_group,
-			})
+		core.lua.table.each(value, function(_, x)
+			if bufs[x.file] then
+				unmark(bufs[x.file], x.lnum)
+			end
 		end)
 	end)
-	vim.fn.sign_unplacelist(marks)
 	mark_list = {}
 end
 
