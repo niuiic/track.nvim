@@ -87,9 +87,10 @@ local unmark = function(bufnr, lnum)
 
 	vim.fn.sign_unplace(sign_group, { id = target_mark.id })
 
-	mark_list[target_mark.file][target_mark.id] = nil
-	if #(core.lua.table.keys(mark_list[target_mark.file])) == 0 then
-		mark_list[target_mark.file] = nil
+	local file = vim.api.nvim_buf_get_name(bufnr)
+	mark_list[file][target_mark.id] = nil
+	if #(core.lua.table.keys(mark_list[file])) == 0 then
+		mark_list[file] = nil
 	end
 end
 
