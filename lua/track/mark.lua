@@ -2,6 +2,11 @@ local static = require("track.static")
 local core = require("core")
 
 -- # global vars
+---@class track.Mark
+---@field id number
+---@field file string
+---@field lnum number
+
 local sign_group = "TrackSigns"
 local sign_name = "TrackSign"
 local hl = "TrackColor"
@@ -113,6 +118,18 @@ local toggle = function(bufnr, lnum)
 end
 
 -- # store
+---@param bufnr number
+local sync_mark_for_buffer = function(bufnr)
+	local file = vim.api.nvim_buf_get_name(bufnr)
+	if not file or not mark_list[file] then
+		return
+	end
+
+	core.lua.list.each(get_buf_marks(bufnr), function(x)
+		mark_list[file][x.id].lnum = x.lnum
+	end)
+end
+
 --- get directory from file path
 ---@param path string
 ---@return string
@@ -123,6 +140,10 @@ end
 
 ---@param path string
 local store = function(path)
+	core.lua.list.each(vim.api.nvim_list_bufs(), function(bufnr)
+		sync_mark_for_buffer(bufnr)
+	end)
+
 	local directory = get_directory(path)
 	if not core.file.file_or_dir_exists(directory) then
 		core.file.mkdir(directory)
@@ -219,15 +240,7 @@ vim.api.nvim_create_autocmd("BufAdd", {
 -- ## close buffer
 vim.api.nvim_create_autocmd({ "BufDelete", "BufUnload" }, {
 	callback = function(args)
-		local bufnr = args.buf
-		local file = vim.api.nvim_buf_get_name(bufnr)
-		if not file or not mark_list[file] then
-			return
-		end
-
-		core.lua.list.each(get_buf_marks(bufnr), function(x)
-			mark_list[file][x.id].lnum = x.lnum
-		end)
+		sync_mark_for_buffer(args.buf)
 	end,
 })
 
