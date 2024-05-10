@@ -1,11 +1,7 @@
 local mark = require("track.mark")
 local core = require("core")
 local utils = require("track.utils")
-
----@param x track.Mark
-local entry_label = function(x)
-	return string.format("[%s]%s:%s", x.id, x.file, x.lnum)
-end
+local static = require("track.static")
 
 local search = function(opts)
 	---@type track.Mark[]
@@ -25,6 +21,7 @@ local search = function(opts)
 					id = x.id,
 					file = file,
 					lnum = x.lnum,
+					desc = mark_list[x.id].desc,
 				})
 			end)
 			return
@@ -40,6 +37,7 @@ local search = function(opts)
 		})
 		return
 	end
+	marks = static.config.search.sort_entry(marks)
 
 	local pickers = require("telescope.pickers")
 	local finders = require("telescope.finders")
@@ -54,13 +52,13 @@ local search = function(opts)
 		.new(opts, {
 			prompt_title = "track.nvim: marks",
 			finder = finders.new_table(core.lua.list.map(marks, function(x)
-				return entry_label(x)
+				return static.config.search.entry_label(x)
 			end)),
 			sorter = conf.generic_sorter(opts),
 			previewer = previewers.new_buffer_previewer({
 				define_preview = function(self, entry)
 					local target_mark = core.lua.list.find(marks, function(x)
-						return entry_label(x) == entry[1]
+						return static.config.search.entry_label(x) == entry[1]
 					end)
 					if not target_mark then
 						return
@@ -98,7 +96,7 @@ local search = function(opts)
 					local selection = action_state.get_selected_entry()
 					actions.close(prompt_bufnr)
 					local target_mark = core.lua.list.find(marks, function(x)
-						return entry_label(x) == selection[1]
+						return static.config.search.entry_label(x) == selection[1]
 					end)
 					if not target_mark then
 						return

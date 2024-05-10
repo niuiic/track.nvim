@@ -7,6 +7,7 @@ local utils = require("track.utils")
 ---@field id number
 ---@field file string
 ---@field lnum number
+---@field desc string
 
 local sign_group = "TrackSigns"
 local sign_name = "TrackSign"
@@ -33,6 +34,7 @@ end
 
 -- # get mark
 ---@param bufnr number
+---@return {lnum: number, id: number}[]
 local get_buf_marks = function(bufnr)
 	---@diagnostic disable-next-line: param-type-mismatch
 	local res = vim.fn.sign_getplaced(vim.api.nvim_buf_get_name(bufnr), {
@@ -46,6 +48,7 @@ end
 
 ---@param bufnr number
 ---@param lnum number
+---@return {lnum: number, id: number}
 local get_target_mark = function(bufnr, lnum)
 	return core.lua.list.find(get_buf_marks(bufnr), function(x)
 		return x.lnum == lnum
@@ -56,7 +59,8 @@ end
 ---@param bufnr number | nil
 ---@param lnum number | nil
 ---@param id number | nil
-local mark = function(bufnr, lnum, id)
+---@param desc string | nil
+local mark = function(bufnr, lnum, id, desc)
 	if not id then
 		id_count = id_count + 1
 		id = id_count
@@ -64,22 +68,36 @@ local mark = function(bufnr, lnum, id)
 	bufnr = bufnr or vim.api.nvim_get_current_buf()
 	lnum = lnum or vim.api.nvim_win_get_cursor(0)[1]
 
-	vim.fn.sign_place(id, sign_group, sign_name, bufnr, {
-		lnum = lnum,
-		priority = static.config.sign.priority,
-	})
+	local do_mark = function()
+		vim.fn.sign_place(id, sign_group, sign_name, bufnr, {
+			lnum = lnum,
+			priority = static.config.sign.priority,
+		})
 
-	---@type track.Mark
-	local cur_mark = {
-		id = id,
-		file = vim.api.nvim_buf_get_name(bufnr),
-		lnum = lnum,
-	}
+		---@type track.Mark
+		local cur_mark = {
+			id = id,
+			file = vim.api.nvim_buf_get_name(bufnr),
+			lnum = lnum,
+			desc = desc or "",
+		}
 
-	if not mark_list[cur_mark.file] then
-		mark_list[cur_mark.file] = {}
+		if not mark_list[cur_mark.file] then
+			mark_list[cur_mark.file] = {}
+		end
+		mark_list[cur_mark.file][cur_mark.id] = cur_mark
 	end
-	mark_list[cur_mark.file][cur_mark.id] = cur_mark
+
+	if desc ~= nil then
+		do_mark()
+		return
+	end
+	vim.ui.input({
+		prompt = "Description: ",
+	}, function(input)
+		desc = input
+		do_mark()
+	end)
 end
 
 -- # unmark
@@ -185,7 +203,7 @@ local mark_for_buffer = function(bufnr)
 			return
 		end
 
-		mark(bufnr, x.lnum, x.id)
+		mark(bufnr, x.lnum, x.id, x.desc)
 	end)
 end
 
