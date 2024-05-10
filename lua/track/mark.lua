@@ -1,5 +1,6 @@
 local static = require("track.static")
 local core = require("core")
+local utils = require("track.utils")
 
 -- # global vars
 ---@class track.Mark
@@ -140,7 +141,7 @@ end
 
 ---@param path string
 local store = function(path)
-	core.lua.list.each(vim.api.nvim_list_bufs(), function(bufnr)
+	core.lua.list.each(utils.get_buf_list(), function(bufnr)
 		sync_mark_for_buffer(bufnr)
 	end)
 
@@ -209,7 +210,7 @@ local restore = function(path)
 		mark_list[x.file][x.id] = x
 	end)
 
-	core.lua.list.each(vim.api.nvim_list_bufs(), function(bufnr)
+	core.lua.list.each(utils.get_buf_list(), function(bufnr)
 		mark_for_buffer(bufnr)
 	end)
 end
@@ -277,4 +278,5 @@ return {
 	restore = restore,
 	remove = remove,
 	get_mark_list = get_mark_list,
+	get_buf_marks = get_buf_marks,
 }

@@ -1,5 +1,6 @@
 local static = require("track.static")
 local mark = require("track.mark")
+local search = require("track.search")
 
 local setup = function(new_config)
 	static.config = vim.tbl_deep_extend("force", static.config, new_config or {})
@@ -14,4 +15,5 @@ return {
 	store = mark.store,
 	restore = mark.restore,
 	remove = mark.remove,
+	search = search.search,
 }
