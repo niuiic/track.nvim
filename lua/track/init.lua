@@ -13,4 +13,5 @@ return {
 	toggle = mark.toggle,
 	store = mark.store,
 	restore = mark.restore,
+	remove = mark.remove,
 }

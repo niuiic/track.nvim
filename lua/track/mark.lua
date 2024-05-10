@@ -192,6 +192,21 @@ local restore = function(path)
 	end)
 end
 
+-- # remove
+local remove = function()
+	local marks = {}
+	core.lua.table.each(mark_list, function(_, value)
+		core.lua.table.each(value, function(_, v)
+			table.insert(marks, {
+				id = v.id,
+				group = sign_group,
+			})
+		end)
+	end)
+	vim.fn.sign_unplacelist(marks)
+	mark_list = {}
+end
+
 -- # sync mark list
 -- ## create buffer
 vim.api.nvim_create_autocmd("BufAdd", {
@@ -222,4 +237,5 @@ return {
 	toggle = toggle,
 	store = store,
 	restore = restore,
+	remove = remove,
 }
