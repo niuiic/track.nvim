@@ -9,6 +9,9 @@ local id_count = 0
 ---@type {[string]: {[string]: track.Mark}}
 -- {file: {id: track.Mark}}
 local mark_list = {}
+local get_mark_list = function()
+	return mark_list
+end
 
 -- # define sign
 local define_sign = function()
@@ -228,6 +231,30 @@ vim.api.nvim_create_autocmd({ "BufDelete", "BufUnload" }, {
 	end,
 })
 
+-- ## change buffer name
+local prev_file
+vim.api.nvim_create_autocmd({ "BufFilePre" }, {
+	callback = function(args)
+		prev_file = vim.api.nvim_buf_get_name(args.buf)
+	end,
+})
+vim.api.nvim_create_autocmd({ "BufFilePost" }, {
+	callback = function(args)
+		local bufnr = args.buf
+		local file = vim.api.nvim_buf_get_name(bufnr)
+
+		if not mark_list[prev_file] then
+			return
+		end
+
+		mark_list[file] = mark_list[prev_file]
+		mark_list[prev_file] = nil
+		core.lua.table.each(mark_list[file], function(_, x)
+			x.file = file
+		end)
+	end,
+})
+
 return {
 	define_sign = define_sign,
 	mark = mark,
@@ -236,4 +263,5 @@ return {
 	store = store,
 	restore = restore,
 	remove = remove,
+	get_mark_list = get_mark_list,
 }
