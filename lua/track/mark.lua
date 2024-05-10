@@ -70,9 +70,7 @@ local mark = function(bufnr, lnum, id)
 	if not mark_list[cur_mark.file] then
 		mark_list[cur_mark.file] = {}
 	end
-	if not mark_list[cur_mark.file][cur_mark.id] then
-		mark_list[cur_mark.file][cur_mark.id] = cur_mark
-	end
+	mark_list[cur_mark.file][cur_mark.id] = cur_mark
 end
 
 -- # unmark
@@ -119,7 +117,6 @@ local get_directory = function(path)
 	return string.sub(path, 1, string.len(path) - index)
 end
 
---
 ---@param path string
 local store = function(path)
 	local directory = get_directory(path)
