@@ -1,4 +1,4 @@
 ---@class track.Mark
 ---@field id number
 ---@field file string
----@field line number
+---@field lnum number
