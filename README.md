@@ -28,6 +28,10 @@ Available functions.
 | `jump_to_next()`                  | jump to next mark in this buffer     |
 | `jump_to_prev()`                  | jump to previous mark in this buffer |
 
+Remember to call `setup` before use.
+
+You may need a session plugin for storing/restoring marks. Check [niuiic/multiple-session.nvim](https://github.com/niuiic/multiple-session.nvim).
+
 ## Config
 
 Default config.
