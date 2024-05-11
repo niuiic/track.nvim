@@ -298,7 +298,7 @@ end
 
 -- # sync mark list
 -- ## create buffer
-vim.api.nvim_create_autocmd("BufAdd", {
+vim.api.nvim_create_autocmd("BufReadPost", {
 	callback = function(args)
 		mark_for_buffer(args.buf)
 	end,
