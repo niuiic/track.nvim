@@ -85,7 +85,7 @@ local search = function(opts)
 						self.state.bufnr,
 						0,
 						"TelescopeSelection",
-						target_mark.lnum - start_line - 1,
+						target_mark.lnum - start_line,
 						0,
 						-1
 					)
