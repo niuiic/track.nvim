@@ -3,6 +3,8 @@
 - Enhanced mark with description.
 - Track the thought process of reading source code.
 
+[More neovim plugins](https://github.com/niuiic/awesome-neovim-plugins)
+
 ## Dependencies
 
 - [niuiic/core.nvim](https://github.com/niuiic/core.nvim)
