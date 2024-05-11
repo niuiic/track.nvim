@@ -16,6 +16,7 @@ return {
 	store = mark.store,
 	restore = mark.restore,
 	remove = mark.remove,
+	edit = mark.edit,
 	search = search.search,
 	jump_to_next = jump.jump_to_next,
 	jump_to_prev = jump.jump_to_prev,

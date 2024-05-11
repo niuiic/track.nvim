@@ -263,6 +263,39 @@ local remove = function()
 	mark_list = {}
 end
 
+--- # edit
+local edit = function(bufnr, lnum)
+	bufnr = bufnr or vim.api.nvim_get_current_buf()
+	lnum = lnum or vim.api.nvim_win_get_cursor(0)[1]
+	local file = vim.api.nvim_buf_get_name(bufnr)
+
+	local target_mark = get_target_mark(bufnr, lnum)
+	if not target_mark then
+		return
+	end
+	target_mark = mark_list[file][target_mark.id]
+
+	vim.ui.input({
+		prompt = "Description: ",
+		default = target_mark.desc,
+	}, function(input)
+		if not input then
+			return
+		end
+
+		target_mark.desc = input
+		vim.api.nvim_buf_del_extmark(bufnr, ns_id, target_mark.id)
+		vim.api.nvim_buf_set_extmark(bufnr, ns_id, target_mark.lnum - 1, 0, {
+			id = target_mark.id,
+			virt_text = { {
+				string.rep(" ", 8) .. target_mark.desc,
+				hl,
+			} },
+			virt_text_pos = "eol",
+		})
+	end)
+end
+
 -- # sync mark list
 -- ## create buffer
 vim.api.nvim_create_autocmd("BufAdd", {
@@ -312,4 +345,5 @@ return {
 	remove = remove,
 	get_mark_list = get_mark_list,
 	get_buf_marks = get_buf_marks,
+	edit = edit,
 }
