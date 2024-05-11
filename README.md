@@ -17,13 +17,14 @@ Available functions.
 | function                          | desc                                 |
 | --------------------------------- | ------------------------------------ |
 | `setup(config)`                   | set config                           |
-| `mark(bufnr?, lnum?, id?, desc?)` | mark current line                    |
-| `unmark(bufnr?, lnum?)`           | unmark current line                  |
-| `toggle(bufnr?, lnum?)`           | mark/unmark current line             |
+| `mark(bufnr?, lnum?, id?, desc?)` | mark line                            |
+| `unmark(bufnr?, lnum?)`           | unmark line                          |
+| `toggle(bufnr?, lnum?)`           | mark/unmark line                     |
 | `store(path)`                     | store marks                          |
 | `restore(path)`                   | restore marks                        |
 | `remove()`                        | remove all marks                     |
-| `search(opts)`                    | restore marks                        |
+| `edit(bufnr?, lnum?)`             | edit mark                            |
+| `search(opts)`                    | search marks                         |
 | `jump_to_next()`                  | jump to next mark in this buffer     |
 | `jump_to_prev()`                  | jump to previous mark in this buffer |
 
@@ -85,6 +86,13 @@ local keys = {
 			require("track").jump_to_prev()
 		end,
 		desc = "jump to prev mark",
+	},
+	{
+		"me",
+		function()
+			require("track").edit()
+		end,
+		desc = "edit mark",
 	},
 	{
 		"<space>om",
