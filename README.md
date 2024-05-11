@@ -24,13 +24,23 @@ Available functions.
 | `restore(path)`                   | restore marks                        |
 | `remove()`                        | remove all marks                     |
 | `edit(bufnr?, lnum?)`             | edit mark                            |
-| `search(opts?)`                    | search marks                         |
+| `search(opts?)`                   | search marks                         |
 | `jump_to_next()`                  | jump to next mark in this buffer     |
 | `jump_to_prev()`                  | jump to previous mark in this buffer |
 
 Remember to call `setup` before use.
 
 You may need a session plugin for storing/restoring marks. Check [niuiic/multiple-session.nvim](https://github.com/niuiic/multiple-session.nvim).
+
+If there is no highlight on your telescope preview window, try to set filetype.
+
+```lua
+vim.filetype.add({
+	extension = {
+		ts = "typescript",
+	},
+})
+```
 
 ## Config
 
