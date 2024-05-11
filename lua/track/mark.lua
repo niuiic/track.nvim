@@ -104,7 +104,10 @@ local mark = function(bufnr, lnum, id, desc)
 	vim.ui.input({
 		prompt = "Description: ",
 	}, function(input)
-		desc = input or ""
+		if not input then
+			return
+		end
+		desc = input
 		do_mark()
 	end)
 end
