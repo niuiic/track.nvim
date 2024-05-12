@@ -66,12 +66,11 @@ local search = function(opts)
 
 					local offset = math.floor(vim.api.nvim_win_get_height(self.state.winid) / 2)
 					local start_line
-					if target_mark.lnum - offset >= 0 then
-						start_line = target_mark.lnum - offset
-					else
+					start_line = target_mark.lnum - offset
+					if start_line < 0 then
 						start_line = 0
 					end
-					local end_line = target_mark.lnum + offset
+					local end_line = offset * 2 - start_line
 
 					local lines = core.lua.list.filter(vim.fn.readfile(target_mark.file), function(_, i)
 						return i >= start_line and i <= end_line
