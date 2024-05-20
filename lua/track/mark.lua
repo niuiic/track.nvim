@@ -276,7 +276,10 @@ local remove = function()
 end
 
 --- # edit
-local edit = function(bufnr, lnum)
+---@param bufnr number | nil
+---@param lnum number | nil
+---@param desc string | nil
+local edit = function(bufnr, lnum, desc)
 	bufnr = bufnr or vim.api.nvim_get_current_buf()
 	lnum = lnum or vim.api.nvim_win_get_cursor(0)[1]
 	local file = vim.api.nvim_buf_get_name(bufnr)
@@ -287,15 +290,8 @@ local edit = function(bufnr, lnum)
 	end
 	target_mark = mark_list[file][target_mark.id]
 
-	vim.ui.input({
-		prompt = "Description: ",
-		default = target_mark.desc,
-	}, function(input)
-		if not input then
-			return
-		end
-
-		target_mark.desc = input
+	local edit_mark = function()
+		target_mark.desc = desc
 		vim.api.nvim_buf_del_extmark(bufnr, ns_id, target_mark.id)
 		vim.api.nvim_buf_set_extmark(bufnr, ns_id, target_mark.lnum - 1, 0, {
 			id = target_mark.id,
@@ -305,6 +301,23 @@ local edit = function(bufnr, lnum)
 			} },
 			virt_text_pos = "eol",
 		})
+	end
+
+	if desc then
+		edit_mark()
+		return
+	end
+
+	vim.ui.input({
+		prompt = "Description: ",
+		default = target_mark.desc,
+	}, function(input)
+		if not input then
+			return
+		end
+
+		desc = input
+		edit_mark()
 	end)
 end
 

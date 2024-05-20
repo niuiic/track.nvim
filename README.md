@@ -26,7 +26,7 @@ Available functions.
 | `store(path)`                     | store marks                          |
 | `restore(path)`                   | restore marks                        |
 | `remove()`                        | remove all marks                     |
-| `edit(bufnr?, lnum?)`             | edit mark                            |
+| `edit(bufnr?, lnum?, desc?)`             | edit mark                            |
 | `search(opts?)`                   | search marks                         |
 | `jump_to_next()`                  | jump to next mark in this buffer     |
 | `jump_to_prev()`                  | jump to previous mark in this buffer |
