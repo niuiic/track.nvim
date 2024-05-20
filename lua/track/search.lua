@@ -64,15 +64,17 @@ local search = function(opts)
 						return
 					end
 
-					local offset = math.floor(vim.api.nvim_win_get_height(self.state.winid) / 2)
+					local height = vim.api.nvim_win_get_height(self.state.winid)
+					local offset = math.floor(height / 2)
 					local start_line
 					start_line = target_mark.lnum - offset
 					if start_line < 0 then
 						start_line = 0
 					end
-					local end_line = offset * 2 - start_line
+					local end_line = start_line + height
 
-					local lines = core.lua.list.filter(vim.fn.readfile(target_mark.file), function(_, i)
+					local lines = vim.fn.readfile(target_mark.file)
+					lines = core.lua.list.filter(lines, function(_, i)
 						return i >= start_line and i <= end_line
 					end)
 					local filetype = vim.filetype.match({ filename = target_mark.file })
