@@ -11,6 +11,7 @@ end
 return {
 	setup = setup,
 	mark = mark.mark,
+	is_marked = mark.is_marked,
 	unmark = mark.unmark,
 	toggle = mark.toggle,
 	store = mark.store,

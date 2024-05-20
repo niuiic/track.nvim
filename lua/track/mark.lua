@@ -112,6 +112,15 @@ local mark = function(bufnr, lnum, id, desc)
 	end)
 end
 
+---@param bufnr number | nil
+---@param lnum number | nil
+local is_marked = function(bufnr, lnum)
+	bufnr = bufnr or vim.api.nvim_get_current_buf()
+	lnum = lnum or vim.api.nvim_win_get_cursor(0)[1]
+
+	return get_target_mark(bufnr, lnum) ~= nil
+end
+
 -- # unmark
 ---@param bufnr number | nil
 ---@param lnum number | nil
@@ -349,4 +358,5 @@ return {
 	get_mark_list = get_mark_list,
 	get_buf_marks = get_buf_marks,
 	edit = edit,
+	is_marked = is_marked,
 }

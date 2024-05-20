@@ -21,6 +21,7 @@ Available functions.
 | `setup(config)`                   | set config                           |
 | `mark(bufnr?, lnum?, id?, desc?)` | mark line                            |
 | `unmark(bufnr?, lnum?)`           | unmark line                          |
+| `is_marked(bufnr?, lnum?)`        | check if this line is marked         |
 | `toggle(bufnr?, lnum?)`           | mark/unmark line                     |
 | `store(path)`                     | store marks                          |
 | `restore(path)`                   | restore marks                        |
