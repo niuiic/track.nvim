@@ -97,13 +97,13 @@ classDiagram
         +delete_mark(id: number)
         +update_mark(id: number, text: string)
         +delete_marks(flow?: string)
-        +find_marks(flow?: string, file_path?: string, lnum?: number) Mark[]
+        +get_marks(flow?: string) Mark[]
         +store_marks(file_path: string)
         +restore_marks(file_path: string)
         +change_mark_order(id: number, direction: 'forward' | 'backward') boolean
         -decorate_mark(mark: Mark)
         -undecorate_mark(mark: Mark)
-        -find_mark_by_id(id: string) Mark
+        -find_mark(id: number) Mark | nil
     }
 
     class Mark {
@@ -114,9 +114,9 @@ classDiagram
 
         +new(file_path: string, lnum: number, text: string)$ Mark
         +get_id() number
-        +get_text() string
         +get_lnum() number
-        +get_relative_file_path(root_dir?: string) string
+        +get_file_path() string
+        +get_text() string
         +set_text(text: string, ns_id: number)
     }
 ```
@@ -153,27 +153,6 @@ flowchart LR
     n3[add new flow and move marks to it] --> n4
 
     n4[delete old flow] --> finish
-
-    finish([finish])
-```
-
-- Marks.find_marks
-
-```mermaid
-flowchart LR
-    start([start]) --> n1
-
-    n1[filter marks with flow] --> n4
-
-    n4[merge marks in a list] --> n2
-
-    n2[filter marks with file_path] --> n3
-
-    n3[filter marks with lnum] --> n5
-
-    n5[map to new marks with relative file_path] --> n6
-
-    n6[return marks] --> finish
 
     finish([finish])
 ```
@@ -245,9 +224,9 @@ flowchart LR
 
     n5[find mark] --> n1
 
-    n1[set mark text] --> n2
+    n1[undecorate mark] --> n2
 
-    n2[undecorate mark] --> n3
+    n2[set mark text] --> n3
 
     n3[decorate mark] --> finish
 
@@ -300,6 +279,27 @@ classDiagram
         +get_pos() 'left' | 'right' | 'top' | 'bottom' | 'float'
         +close()
     }
+```
+
+- Outline.open
+
+```mermaid
+flowchart LR
+    start([start]) --> n1
+
+    n1{outline is open}
+    n1 --Y--> error(notify error) --> finish
+    n1 --N--> n2
+
+    n2[open outline window] --> n5
+
+    n5[set keymap] --> n3
+
+    n3[get filtered marks] --> n4
+
+    n4[draw marks] --> finish
+
+    finish([finish])
 ```
 
 - Outline.set_config
@@ -389,6 +389,7 @@ classDiagram
         +flow_hl_group: string
         +win_pos: 'left' | 'right' | 'top' | 'bottom'
         +win_size: number
+        +preview_on_hover: boolean
 
         +get_mark_line_text(file_path: string, lnum: string, text: string) string
     }

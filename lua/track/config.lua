@@ -33,6 +33,7 @@ local default_config = {
 		flow_hl_group = "FloatBorder",
 		win_pos = "left",
 		win_size = 30,
+		preview_on_hover = true,
 		get_mark_line_text = function(file_path, lnum, text)
 			return string.format("[%s:%d] %s", file_path, lnum, text)
 		end,

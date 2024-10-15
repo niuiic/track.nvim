@@ -35,17 +35,9 @@ function Mark:get_lnum()
 	return self._lnum
 end
 
--- % get_relative_file_path %
-function Mark:get_relative_file_path(root_dir)
-	if not root_dir then
-		return self._file_path
-	end
-
-	local relative_file_path = string.match(self._file_path, "^" .. root_dir .. "/(.*)$")
-	if not relative_file_path then
-		error("invalid root directory path")
-	end
-	return relative_file_path
+-- % get_file_path %
+function Mark:get_file_path()
+	return self._file_path
 end
 
 -- % set_text %
