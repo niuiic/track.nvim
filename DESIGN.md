@@ -282,12 +282,14 @@ classDiagram
 
     class Window {
         -ns_id: number
+        -pos: 'left' | 'right' | 'top' | 'bottom' | 'float'
 
-        +open_split(pos: 'left' | 'right', width: number)$ Window
+        +open_split(pos: 'left' | 'right' | 'top' | 'bottom', width: number)$ Window
         +open_float(width: number, height: number)$ Window
         +write_line(lnum: number, text: string, hl_group?: string)
         +set_keymap(keymap: Map~string, function~)
         +get_cursor_lnum() number
+        +get_pos() 'left' | 'right' | 'top' | 'bottom' | 'float'
         +close()
     }
 ```
@@ -376,15 +378,15 @@ classDiagram
     }
 
     class OutlineConfig {
-        +flow_hl_color: string
-        +win_pos: 'left' | 'right'
+        +flow_hl_group: string
+        +win_pos: 'left' | 'right' | 'top' | 'bottom'
         +win_size: number
 
         +get_mark_line_text(file_path: string, lnum: string, text: string) string
     }
 
     class MarkConfig {
-        +mark_hl_color: string
+        +mark_hl_group: string
         +mark_icon: string
         +get_root_dir: () => string
     }
