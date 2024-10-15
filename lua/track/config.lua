@@ -20,7 +20,7 @@ function Config:get()
 	return self._config
 end
 
--- % default config %
+-- % default_config %
 local default_config = {
 	mark = {
 		mark_hl_group = "CurSearch",

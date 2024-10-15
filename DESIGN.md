@@ -94,12 +94,16 @@ classDiagram
         +get_flows() string[]
         %% mark
         +add_mark(file_path: string, lnum: number, text: string, flow: string)
-        +delete_mark(file_path: string, lnum: number, text: string, flow?: string)
+        +delete_mark(id: number)
+        +update_mark(id: number, text: string)
         +delete_marks(flow?: string)
         +find_marks(flow?: string, file_path?: string, lnum?: number) Mark[]
         +store_marks(file_path: string)
         +restore_marks(file_path: string)
         +change_mark_order(id: number, direction: 'forward' | 'backward') boolean
+        -decorate_mark(mark: Mark)
+        -undecorate_mark(mark: Mark)
+        -find_mark_by_id(id: string) Mark
     }
 
     class Mark {
@@ -113,9 +117,7 @@ classDiagram
         +get_text() string
         +get_lnum() number
         +get_relative_file_path(root_dir?: string) string
-        +set_text(text: string)
-        +decorate(ns_id: number, hl_group: string, icon: string)
-        +undecorate(ns_id: number)
+        +set_text(text: string, ns_id: number)
     }
 ```
 
@@ -231,13 +233,19 @@ flowchart LR
     finish([finish])
 ```
 
-- Mark.set_text
+- Marks.update_mark
 
 ```mermaid
 flowchart LR
-    start([start]) --> n1
+    start([start]) --> n4
 
-    n1[set text field] --> n2
+    n4{mark exists}
+    n4 --N--> error(notify error) --> finish
+    n4 --Y--> n5
+
+    n5[find mark] --> n1
+
+    n1[set mark text] --> n2
 
     n2[undecorate mark] --> n3
 
@@ -388,6 +396,6 @@ classDiagram
     class MarkConfig {
         +mark_hl_group: string
         +mark_icon: string
-        +get_root_dir: () => string
+        +get_root_dir: () => string | nil
     }
 ```
