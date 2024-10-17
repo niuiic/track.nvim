@@ -120,7 +120,6 @@ classDiagram
         +add_mark(file_path: string, lnum: number, text: string, flow: string)
         -add_mark(mark: Mark, flow: string)
         +delete_mark(id: number)
-        +delete_marks(flow?: string)
         +update_mark_text(id: number, text: string)
         +update_mark_file_path(old: string, new: string)
         +update_mark_lnum(file_path: string)

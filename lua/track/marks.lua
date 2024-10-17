@@ -51,7 +51,9 @@ end
 
 -- % delete_flow %
 function Marks:delete_flow(name)
-	self:delete_marks(name)
+	for _, mark in ipairs(self._marks[name]) do
+		self:delete_mark(mark:get_id())
+	end
 	self._marks[name] = nil
 end
 
@@ -138,24 +140,6 @@ function Marks:update_mark_text(id, text)
 	self:_undecorate_mark(mark)
 	mark:set_text(text)
 	self:_decorate_mark(mark)
-end
-
--- % delete_marks %
--- TODO: delete_marks
-function Marks:delete_marks(flow)
-	local marks = {}
-
-	if flow then
-		marks = self._marks[flow]
-	else
-		for _, value in pairs(self._marks) do
-			marks = vim.list_extend(marks, value)
-		end
-	end
-
-	for _, mark in ipairs(marks) do
-		self:delete_mark(mark:get_id())
-	end
 end
 
 -- % get_marks %

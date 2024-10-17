@@ -88,13 +88,14 @@ function M.delete_mark()
 end
 
 -- % delete_marks %
--- TODO: delete_marks
 function M.delete_marks(delete_all)
 	if delete_all then
-		M._marks:delete_marks()
+		for _, flow in ipairs(M._marks:get_flows()) do
+			M._marks:delete_flow(flow)
+		end
 	else
 		M._select_flow(function(flow)
-			M._marks:delete_marks(flow)
+			M._marks:delete_flow(flow)
 		end)
 	end
 end
