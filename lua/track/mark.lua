@@ -47,20 +47,27 @@ function Mark:set_file_path(file_path)
 end
 
 -- % to_string %
-function Mark:to_string()
+function Mark:to_string(root_dir)
+	local file_path = self._file_path
+
+	if root_dir then
+		file_path = string.match(file_path, root_dir .. "(.*)")
+	end
+
 	return vim.json.encode({
 		id = self._id,
 		text = self._text,
-		file_path = self._file_path,
+		file_path = file_path,
 		lnum = self._lnum,
 	})
 end
 
 -- % from_string %
 -- TODO: from_string
-function Mark:from_string(str)
+function Mark:from_string(str, root_dir)
 	local data = vim.json.decode(str)
-	return Mark:new(data.id, data.file_path, data.lnum, data.text)
+
+	return Mark:new(data.id, root_dir and root_dir .. data.file_path or data.file_path, data.lnum, data.text)
 end
 
 return Mark

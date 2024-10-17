@@ -56,6 +56,7 @@ classDiagram
         +restore_marks(file_path: string)
         +notify_file_path_change(old: string, new: string)
         +notify_file_change(file_path: string)
+        +decorate_marks_on_file(file_path: string)
     }
 ```
 
@@ -125,10 +126,10 @@ classDiagram
         +update_mark_lnum(file_path: string)
         +change_mark_order(id: number, direction: 'forward' | 'backward') boolean
         +get_marks(flow?: string) Mark[]
-        +get_marks_by_pos(file_path: string, lnum: number) Mark[]
+        +get_marks_by_pos(file_path: string, lnum?: number) Mark[]
         +store_marks(file_path: string)
         +restore_marks(file_path: string)
-        -decorate_mark(mark: Mark)
+        +decorate_mark(mark: Mark)
         -undecorate_mark(mark: Mark)
         -get_mark(id: number) Mark | nil
     }
@@ -147,8 +148,8 @@ classDiagram
         +set_file_path(file_path: string)
         +get_text() string
         +set_text(text: string)
-        +to_string() string
-        +from_string()$ Mark
+        +to_string(root_dir?: string) string
+        +from_string(str: string, root_dir?: string)$ Mark
     }
 ```
 
@@ -315,17 +316,24 @@ classDiagram
         -move_mark_up()
         -move_mark_down()
         -navigate_to_mark()
+        -delete_mark()
+        -update_mark(set_default?: boolean)
         -preview_mark()
-        -get_line_mark()
+        -get_cursor_mark() Mark | nil
     }
 
     class Window {
         -ns_id: number
         -pos: 'left' | 'right' | 'top' | 'bottom' | 'float'
+        -bufnr: number
+        -winnr: number
 
-        +open_split(pos: 'left' | 'right' | 'top' | 'bottom', width: number)$ Window
-        +open_float(width: number, height: number)$ Window
+        +new_split(pos: 'left' | 'right' | 'top' | 'bottom', size: number, enter?: boolean)$ Window
+        +new_float(relative_winnr: number, row: number, col: number, width: number, height: number, enter?: boolean)$ Window
+        +is_valid() boolean
         +write_line(lnum: number, text: string, hl_group?: string)
+        +write_file(file_path)
+        +clean()
         +set_keymap(keymap: Map~string, function~)
         +get_cursor_lnum() number
         +get_pos() 'left' | 'right' | 'top' | 'bottom' | 'float'
@@ -340,16 +348,22 @@ flowchart LR
     start([start]) --> n1
 
     n1{outline is open}
-    n1 --Y--> error(notify error) --> finish
-    n1 --N--> n2
+    n1 --Y--> n2
+    n1 --N--> n3
 
-    n2[open outline window] --> n5
+    n2{flow is same}
+    n2 --Y--> finish
+    n2 --N--> n4
 
-    n5[set keymap] --> n3
+    n4[clean buffer] --> n7
 
-    n3[get filtered marks] --> n4
+    n5[draw marks] --> finish
 
-    n4[draw marks] --> finish
+    n3[open window] --> n6
+
+    n6[set keymap] --> n7
+
+    n7[set flow] --> n5
 
     finish([finish])
 ```
@@ -439,9 +453,17 @@ classDiagram
 
     class OutlineConfig {
         +flow_hl_group: string
+        +mark_hl_group: string
         +win_pos: 'left' | 'right' | 'top' | 'bottom'
         +win_size: number
         +preview_on_hover: boolean
+        +set_default_when_update_mark: boolean
+        +keymap_move_mark_up: string
+        +keymap_move_mark_down: string
+        +keymap_navigate_to_mark: string
+        +keymap_delete_mark: string
+        +keymap_update_mark: string
+        +keymap_preview_mark: string
 
         +get_mark_line_text(file_path: string, lnum: string, text: string) string
     }

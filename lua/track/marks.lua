@@ -31,7 +31,7 @@ function Marks:set_config(config)
 		for _, marks in pairs(self._marks) do
 			for _, mark in ipairs(marks) do
 				self:_undecorate_mark(mark)
-				self:_decorate_mark(mark)
+				self:decorate_mark(mark)
 			end
 		end
 	end
@@ -102,7 +102,7 @@ function Marks:add_mark(file_path, lnum, text, flow)
 	local mark = require("track.mark"):new(self._id_count, file_path, lnum, text)
 	table.insert(self._marks[flow], mark)
 
-	self:_decorate_mark(mark)
+	self:decorate_mark(mark)
 end
 
 -- % _add_mark %
@@ -113,7 +113,7 @@ function Marks:_add_mark(flow, mark)
 	end
 
 	table.insert(self._marks[flow], mark)
-	self:_decorate_mark(mark)
+	self:decorate_mark(mark)
 end
 
 -- % delete_mark %
@@ -139,7 +139,7 @@ function Marks:update_mark_text(id, text)
 
 	self:_undecorate_mark(mark)
 	mark:set_text(text)
-	self:_decorate_mark(mark)
+	self:decorate_mark(mark)
 end
 
 -- % get_marks %
@@ -158,8 +158,10 @@ function Marks:get_marks_by_pos(file_path, lnum)
 
 	for _, marks in pairs(self._marks) do
 		for _, mark in ipairs(marks) do
-			if mark:get_file_path() == file_path and mark:get_lnum() == lnum then
-				table.insert(target_marks, mark)
+			if mark:get_file_path() == file_path then
+				if not lnum or mark:get_lnum() == lnum then
+					table.insert(target_marks, mark)
+				end
 			end
 		end
 	end
@@ -171,10 +173,11 @@ end
 -- TODO:store_marks
 function Marks:store_marks(file_path)
 	local marks = {}
+	local root_dir = self._config.get_root_dir()
 	for flow, mark_list in pairs(self._marks) do
 		marks[flow] = vim.iter(mark_list)
 			:map(function(mark)
-				return mark:to_string()
+				return mark:to_string(root_dir)
 			end)
 			:totable()
 	end
@@ -202,9 +205,10 @@ function Marks:restore_marks(file_path)
 	vim.iter(self:get_flows()):each(function(flow)
 		self:delete_flow(flow)
 	end)
+	local root_dir = self._config.get_root_dir()
 	for flow, marks in pairs(data.marks) do
 		for _, str in ipairs(marks) do
-			self:_add_mark(flow, require("track.mark"):from_string(str))
+			self:_add_mark(flow, require("track.mark"):from_string(str, root_dir))
 		end
 	end
 end
@@ -291,25 +295,26 @@ end
 
 -- % decorate_mark %
 -- TODO:decorate_mark
-function Marks:_decorate_mark(mark)
+function Marks:decorate_mark(mark)
 	local bufnr = self:_get_file_bufnr(mark:get_file_path())
 	if not bufnr then
 		return
 	end
 
-	vim.fn.sign_place(mark:get_id(), self._sign_group, self._sign_name, bufnr, {
-		lnum = mark:get_lnum(),
-		priority = self._config.sign_priority,
-	})
-
-	vim.api.nvim_buf_set_extmark(bufnr, self._ns_id, mark:get_lnum() - 1, 0, {
-		id = mark:get_id(),
-		virt_text = { {
-			string.rep(" ", 8) .. mark:get_text(),
-			self._config.mark_hl_group,
-		} },
-		virt_text_pos = "eol",
-	})
+	pcall(function()
+		vim.fn.sign_place(mark:get_id(), self._sign_group, self._sign_name, bufnr, {
+			lnum = mark:get_lnum(),
+			priority = self._config.sign_priority,
+		})
+		vim.api.nvim_buf_set_extmark(bufnr, self._ns_id, mark:get_lnum() - 1, 0, {
+			id = mark:get_id(),
+			virt_text = { {
+				string.rep(" ", 8) .. mark:get_text(),
+				self._config.mark_hl_group,
+			} },
+			virt_text_pos = "eol",
+		})
+	end)
 end
 
 -- % undecorate_mark %

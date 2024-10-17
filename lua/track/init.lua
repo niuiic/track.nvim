@@ -1,8 +1,10 @@
 local config = require("track.config")
+local marks = require("track.marks"):new(config:get().mark)
 
 local M = {
 	_config = config,
-	_marks = require("track.marks"):new(config:get().mark),
+	_marks = marks,
+	_outline = require("track.outline"):new(config:get().outline, marks),
 }
 
 -- % setup %
@@ -10,15 +12,26 @@ local M = {
 function M:setup(new_config)
 	config:set(new_config or {})
 	M._marks:set_config(config:get().mark)
+	M._outline:set_config(config:get().outline)
 end
 
 -- % open_outline %
 -- TODO: open_outline
-function M.open_outline(show_all) end
+function M.open_outline(show_all)
+	if show_all then
+		M._outline:open()
+	else
+		M._select_flow(function(flow)
+			M._outline:open(flow)
+		end)
+	end
+end
 
 -- % close_outline %
 -- TODO: close_outline
-function M.close_outline() end
+function M.close_outline()
+	M._outline:close()
+end
 
 -- % add_flow %
 -- TODO: add_flow
@@ -56,6 +69,11 @@ function M.add_mark()
 	M._select_flow(function(flow)
 		local file_path = vim.api.nvim_buf_get_name(0)
 		local lnum = vim.api.nvim_win_get_cursor(0)[1]
+
+		if not file_path then
+			require("track.notify").notify_err("file is invalid")
+			return
+		end
 
 		vim.ui.input({ prompt = "input mark text" }, function(input)
 			if input then
@@ -192,6 +210,13 @@ function M._select_mark(marks, fn)
 			end
 		end
 	)
+end
+
+-- % decorate_marks_on_file %
+function M.decorate_marks_on_file(file_path)
+	vim.iter(M._marks:get_marks_by_pos(file_path)):each(function(mark)
+		M._marks:decorate_mark(mark)
+	end)
 end
 
 return M
