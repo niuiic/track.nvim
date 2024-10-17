@@ -129,7 +129,7 @@ function Outline:draw_marks()
 			start_lnum = start_lnum + #self._marks:get_marks(flow) + 2
 		end)
 	end
-	self._outline_window:clean(start_lnum - 2)
+	self._outline_window:clean(start_lnum - 2 < 0 and 0 or start_lnum - 2)
 	self._outline_window:disable_edit()
 end
 

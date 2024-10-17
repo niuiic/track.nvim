@@ -9,7 +9,7 @@ local M = {
 
 -- % setup %
 -- TODO: setup
-function M:setup(new_config)
+function M.setup(new_config)
 	M._config:set(new_config or {})
 	M._marks:set_config(M._config:get().mark)
 	M._outline:set_config(M._config:get().outline)
