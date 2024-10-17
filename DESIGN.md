@@ -50,8 +50,8 @@ classDiagram
         %% mark
         +add_mark()
         +delete_mark()
-        +update_mark()
         +delete_marks(delete_all?: string)
+        +update_mark(set_default?: boolean)
         +store_marks(file_path: string)
         +restore_marks(file_path: string)
         +notify_file_path_change(old: string, new: string)
@@ -118,6 +118,7 @@ classDiagram
         +has_flow(name: string) boolean
         %% mark
         +add_mark(file_path: string, lnum: number, text: string, flow: string)
+        -add_mark(mark: Mark, flow: string)
         +delete_mark(id: number)
         +delete_marks(flow?: string)
         +update_mark_text(id: number, text: string)
@@ -125,7 +126,7 @@ classDiagram
         +update_mark_lnum(file_path: string)
         +change_mark_order(id: number, direction: 'forward' | 'backward') boolean
         +get_marks(flow?: string) Mark[]
-        +get_marks_by_pos(file_path: string, lnum: number) Mark[] | nil
+        +get_marks_by_pos(file_path: string, lnum: number) Mark[]
         +store_marks(file_path: string)
         +restore_marks(file_path: string)
         -decorate_mark(mark: Mark)
@@ -147,6 +148,8 @@ classDiagram
         +set_file_path(file_path: string)
         +get_text() string
         +set_text(text: string)
+        +to_string() string
+        +from_string()$ Mark
     }
 ```
 

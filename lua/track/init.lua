@@ -67,7 +67,69 @@ end
 
 -- % delete_mark %
 -- TODO: delete_mark
-function M.delete_mark() end
+function M.delete_mark()
+	local file_path = vim.api.nvim_buf_get_name(0)
+	local lnum = vim.api.nvim_win_get_cursor(0)[1]
+	local marks = M._marks:get_marks_by_pos(file_path, lnum)
+
+	if #marks == 0 then
+		require("track.notify").notify_err("no mark exists at this line")
+		return
+	end
+
+	if #marks == 1 then
+		M._marks:delete_mark(marks[1]:get_id())
+		return
+	end
+
+	M._select_mark(marks, function(mark)
+		M._marks:delete_mark(mark:get_id())
+	end)
+end
+
+-- % delete_marks %
+-- TODO: delete_marks
+function M.delete_marks(delete_all)
+	if delete_all then
+		M._marks:delete_marks()
+	else
+		M._select_flow(function(flow)
+			M._marks:delete_marks(flow)
+		end)
+	end
+end
+
+-- % update_mark %
+-- TODO: update_mark
+function M.update_mark(set_default)
+	local file_path = vim.api.nvim_buf_get_name(0)
+	local lnum = vim.api.nvim_win_get_cursor(0)[1]
+	local marks = M._marks:get_marks_by_pos(file_path, lnum)
+
+	if #marks == 0 then
+		require("track.notify").notify_err("no mark exists at this line")
+		return
+	end
+
+	if #marks == 1 then
+		M._update_mark_text(marks[1], set_default)
+	else
+		M._select_mark(marks, function(mark)
+			M._update_mark_text(mark, set_default)
+		end)
+	end
+end
+
+function M._update_mark_text(mark, set_default)
+	vim.ui.input({
+		prompt = "input mark text",
+		default = set_default and mark:get_text() or nil,
+	}, function(input)
+		if input then
+			M._marks:update_mark_text(mark:get_id(), input)
+		end
+	end)
+end
 
 -- % store_marks %
 -- TODO: store_marks
@@ -107,6 +169,28 @@ function M._select_flow(fn)
 			fn(choice)
 		end
 	end)
+end
+
+-- % _select_mark %
+function M._select_mark(marks, fn)
+	vim.ui.select(
+		vim.iter(marks):map(function(mark)
+			return mark:get_text()
+		end),
+		{ prompt = "select mark" },
+		function(choice)
+			if not choice then
+				return
+			end
+
+			local mark = vim.iter(marks):find(function(mark)
+				return mark:get_text() == choice
+			end)
+			if mark then
+				fn(mark)
+			end
+		end
+	)
 end
 
 return M
