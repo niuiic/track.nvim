@@ -11,6 +11,7 @@ function Window:new_split(pos, size, enter)
 	local cur_winnr = vim.api.nvim_get_current_win()
 	instance._bufnr = vim.api.nvim_create_buf(false, true)
 	vim.api.nvim_set_option_value("filetype", "track", { buf = instance._bufnr })
+	vim.api.nvim_buf_set_var(instance._bufnr, "disable_track", true)
 	if pos == "left" then
 		vim.cmd("topleft " .. size .. "vs")
 	elseif pos == "right" then
@@ -43,6 +44,7 @@ function Window:new_float(relative_winnr, row, col, width, height, enter)
 
 	instance._bufnr = vim.api.nvim_create_buf(false, true)
 	vim.api.nvim_set_option_value("filetype", "track", { buf = instance._bufnr })
+	vim.api.nvim_buf_set_var(instance._bufnr, "disable_track", true)
 	local cur_zindex = vim.api.nvim_win_get_config(0).zindex or 0
 	instance._winnr = vim.api.nvim_open_win(instance._bufnr, false, {
 		relative = "win",
@@ -80,7 +82,34 @@ end
 
 -- % write_file %
 -- TODO: write_file
-function Window:write_file(file_path) end
+function Window:write_file(file_path, focus_lnum, hl_group)
+	if not vim.uv.fs_stat(file_path) then
+		return
+	end
+
+	local cur_winnr = vim.api.nvim_get_current_win()
+	local cur_cursor_pos = vim.api.nvim_win_get_cursor(cur_winnr)
+
+	vim.api.nvim_set_current_win(self._winnr)
+
+	local lines = vim.fn.readfile(file_path)
+	vim.api.nvim_buf_set_lines(self._bufnr, 0, -1, false, lines)
+	vim.api.nvim_set_option_value("filetype", vim.filetype.match({ filename = file_path }), {
+		buf = self._bufnr,
+	})
+
+	if focus_lnum then
+		vim.api.nvim_win_set_cursor(self._winnr, { focus_lnum, 0 })
+		vim.cmd("normal zz")
+	end
+
+	if focus_lnum and hl_group then
+		vim.api.nvim_buf_add_highlight(self._bufnr, self._ns_id, hl_group, focus_lnum - 1, 0, -1)
+	end
+
+	vim.api.nvim_set_current_win(cur_winnr)
+	vim.api.nvim_win_set_cursor(cur_winnr, cur_cursor_pos)
+end
 
 -- % set_keymap %
 -- TODO: set_keymap
@@ -90,6 +119,16 @@ function Window:set_keymap(keymap)
 			buffer = self._bufnr,
 		})
 	end
+end
+
+-- % set_autocmd %
+function Window:set_autocmd(events, fn)
+	vim.api.nvim_create_autocmd(events, {
+		buffer = self._bufnr,
+		callback = function()
+			fn()
+		end,
+	})
 end
 
 -- % get_cursor_lnum %
@@ -145,6 +184,25 @@ function Window:_set_window_options()
 	})
 	vim.api.nvim_set_option_value("showbreak", "      ", {
 		win = self._winnr,
+	})
+end
+
+-- % get_winnr %
+function Window:get_winnr()
+	return self._winnr
+end
+
+-- % enable_edit %
+function Window:enable_edit()
+	vim.api.nvim_set_option_value("modifiable", true, {
+		buf = self._bufnr,
+	})
+end
+
+-- % disable_edit %
+function Window:disable_edit()
+	vim.api.nvim_set_option_value("modifiable", false, {
+		buf = self._bufnr,
 	})
 end
 

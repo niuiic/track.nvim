@@ -41,6 +41,15 @@ function Outline:open(flow)
 	self._flow = flow
 	self._prev_winnr = vim.api.nvim_get_current_win()
 	self._outline_window = require("track.window"):new_split(self._config.win_pos, self._config.win_size, false)
+
+	self:_set_keymap()
+	if self._config.preview_on_hover then
+		self:_set_autocmd()
+	end
+	self:draw_marks()
+end
+
+function Outline:_set_keymap()
 	self._outline_window:set_keymap({
 		[self._config.keymap_move_mark_up] = function()
 			self:_move_mark_up()
@@ -61,7 +70,26 @@ function Outline:open(flow)
 			self:_preview_mark()
 		end,
 	})
-	self:draw_marks()
+end
+
+function Outline:_set_autocmd()
+	local prev_cursor_lnum
+	self._outline_window:set_autocmd({ "WinEnter", "CursorMoved" }, function()
+		if not self:_get_cursor_mark() and self._preview_window then
+			self._preview_window:close()
+		end
+		local cursor_lnum = self._outline_window:get_cursor_lnum()
+		if prev_cursor_lnum ~= cursor_lnum then
+			self:_preview_mark()
+		end
+		prev_cursor_lnum = cursor_lnum
+	end)
+	self._outline_window:set_autocmd({ "WinLeave" }, function()
+		prev_cursor_lnum = nil
+		if self._preview_window then
+			self._preview_window:close()
+		end
+	end)
 end
 
 -- % close %
@@ -91,6 +119,7 @@ function Outline:draw_marks()
 
 	self._line_marks = {}
 
+	self._outline_window:enable_edit()
 	local start_lnum = 1
 	if self._flow then
 		self:_draw_flow_marks(self._flow, start_lnum)
@@ -100,8 +129,8 @@ function Outline:draw_marks()
 			start_lnum = start_lnum + #self._marks:get_marks(flow) + 2
 		end)
 	end
-
 	self._outline_window:clean(start_lnum - 2)
+	self._outline_window:disable_edit()
 end
 
 function Outline:_draw_flow_marks(flow, start_lnum)
@@ -161,15 +190,24 @@ function Outline:_navigate_to_mark()
 	local bufnr = vim.iter(vim.api.nvim_list_bufs()):find(function(bufnr)
 		return vim.api.nvim_buf_get_name(bufnr) == mark:get_file_path()
 	end)
-	-- FIXME: previous win could be destroyed
-	vim.api.nvim_set_current_win(self._prev_winnr)
-	if not bufnr then
-		vim.cmd("file " .. mark:get_file_path())
-	else
-		vim.api.nvim_set_current_buf(bufnr)
+
+	local function navigate(winnr)
+		vim.api.nvim_set_current_win(winnr)
+
+		if not bufnr or not vim.api.nvim_buf_is_valid(bufnr) or not vim.api.nvim_buf_is_loaded(bufnr) then
+			vim.cmd("edit " .. mark:get_file_path())
+		else
+			vim.api.nvim_set_current_buf(bufnr)
+		end
+
+		vim.api.nvim_win_set_cursor(0, { mark:get_lnum(), 0 })
 	end
 
-	vim.api.nvim_win_set_cursor(0, { mark:get_lnum(), 0 })
+	if vim.api.nvim_win_is_valid(self._prev_winnr) then
+		navigate(self._prev_winnr)
+	else
+		self._config.select_window(navigate)
+	end
 end
 
 -- % delete_mark %
@@ -207,7 +245,45 @@ end
 
 -- % preview_mark %
 -- TODO: preview_mark
-function Outline:_preview_mark() end
+function Outline:_preview_mark()
+	local mark = self:_get_cursor_mark()
+	if not mark then
+		return
+	end
+
+	if self._preview_window and self._preview_window:is_valid() then
+		self._preview_window:close()
+	end
+
+	local row, col
+	local win_pos = self._outline_window:get_pos()
+	if win_pos == "left" then
+		row = self._outline_window:get_cursor_lnum() - 1
+		col = self._config.win_size
+	elseif win_pos == "right" then
+		row = self._outline_window:get_cursor_lnum()
+		col = self._config.win_size * -1 - 2
+	elseif win_pos == "top" then
+		row = self._config.win_size
+		col = 0
+	elseif win_pos == "bottom" then
+		col = 0
+		row = -self._config.win_size - self._config.preview_win_height
+	else
+		error("outline window position is invalid")
+	end
+
+	self._preview_window = require("track.window"):new_float(
+		self._outline_window:get_winnr(),
+		row,
+		col,
+		self._config.preview_win_width,
+		self._config.preview_win_height,
+		false
+	)
+
+	self._preview_window:write_file(mark:get_file_path(), mark:get_lnum(), self._config.preview_cursor_line_hl_group)
+end
 
 -- % get_cursor_mark %
 -- TODO: _get_cursor_mark

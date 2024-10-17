@@ -40,6 +40,8 @@ classDiagram
 
         %% config
         +setup(config: Config)
+        %% enable
+        +is_enabled(bufnr: number, winnr: number) boolean
         %% outline
         +open_outline(show_all?: boolean)
         +close_outline()
@@ -333,13 +335,17 @@ classDiagram
         +new_float(relative_winnr: number, row: number, col: number, width: number, height: number, enter?: boolean)$ Window
         +is_valid() boolean
         +write_line(lnum: number, text: string, hl_group?: string)
-        +write_file(file_path)
+        +write_file(file_path: string, focus_lnum?: number, hl_group?: string)
         +clean(after_lnum?: number)
         +set_keymap(keymap: Map~string, function~)
+        +set_autocmd(events: string[], fn: () => void)
         +get_cursor_lnum() number
         +set_cursor_lnum(lnum: number)
         +get_pos() 'left' | 'right' | 'top' | 'bottom' | 'float'
         +close()
+        +get_winnr() number
+        +enable_edit()
+        +disable_edit()
     }
 ```
 
@@ -451,6 +457,7 @@ classDiagram
     class Config {
         +outline: OutlineConfig
         +mark: MarkConfig
+        +is_enabled(bufnr: number, winnr: number) boolean
     }
 
     class OutlineConfig {
@@ -458,6 +465,9 @@ classDiagram
         +mark_hl_group: string
         +win_pos: 'left' | 'right' | 'top' | 'bottom'
         +win_size: number
+        +preview_win_width: number
+        +preview_win_height: number
+        +preview_cursor_line_hl_group: string
         +preview_on_hover: boolean
         +set_default_when_update_mark: boolean
         +keymap_move_mark_up: string
@@ -468,6 +478,7 @@ classDiagram
         +keymap_preview_mark: string
 
         +get_mark_line_text(file_path: string, lnum: string, text: string) string
+        +select_window(fn: (winnr: number) => void)
     }
 
     class MarkConfig {

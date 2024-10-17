@@ -230,4 +230,8 @@ function M.decorate_marks_on_file(file_path)
 	end)
 end
 
+function M.is_enabled(buffer, winnr)
+	return M._config:get().is_enabled(buffer, winnr)
+end
+
 return M

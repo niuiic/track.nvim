@@ -19,7 +19,16 @@ function Config:get()
 end
 
 -- % default_config %
+local screen_w = vim.opt.columns:get()
+local screen_h = vim.opt.lines:get() - vim.opt.cmdheight:get()
+local preview_win_width = math.floor(screen_w * 0.6)
+local preview_win_height = math.floor(screen_h * 0.6)
+
 local default_config = {
+	is_enabled = function(buffer)
+		local ok, is_disable_track = pcall(vim.api.nvim_buf_get_var, buffer, "disable_track")
+		return not ok or not is_disable_track
+	end,
 	mark = {
 		mark_hl_group = "WarningMsg",
 		mark_icon = "󰍒",
@@ -33,7 +42,10 @@ local default_config = {
 		mark_hl_group = "WarningMsg",
 		win_pos = "left",
 		win_size = 30,
+		preview_win_width = preview_win_width,
+		preview_win_height = preview_win_height,
 		preview_on_hover = true,
+		preview_cursor_line_hl_group = "CursorLine",
 		set_default_when_update_mark = false,
 		keymap_move_mark_up = "<A-k>",
 		keymap_move_mark_down = "<A-j>",
@@ -44,6 +56,7 @@ local default_config = {
 		get_mark_line_text = function(_, _, text)
 			return text
 		end,
+		select_window = function() end,
 	},
 }
 
