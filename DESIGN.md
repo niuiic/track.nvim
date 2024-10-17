@@ -302,6 +302,7 @@ classDiagram
         -preview_window: Window | nil
         -flow: string | nil
         -line_marks: Map~number, Mark~
+        -prev_winnr: number
 
         %% new
         +new(config: OutlineConfig, marks: Marks)$ Outline
@@ -333,9 +334,10 @@ classDiagram
         +is_valid() boolean
         +write_line(lnum: number, text: string, hl_group?: string)
         +write_file(file_path)
-        +clean()
+        +clean(after_lnum?: number)
         +set_keymap(keymap: Map~string, function~)
         +get_cursor_lnum() number
+        +set_cursor_lnum(lnum: number)
         +get_pos() 'left' | 'right' | 'top' | 'bottom' | 'float'
         +close()
     }

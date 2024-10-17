@@ -84,11 +84,23 @@ function Window:write_file(file_path) end
 
 -- % set_keymap %
 -- TODO: set_keymap
-function Window:set_keymap(keymap) end
+function Window:set_keymap(keymap)
+	for key, callback in pairs(keymap) do
+		vim.keymap.set("n", key, callback, {
+			buffer = self._bufnr,
+		})
+	end
+end
 
 -- % get_cursor_lnum %
--- TODO: get_cursor_lnum
-function Window:get_cursor_lnum() end
+function Window:get_cursor_lnum()
+	return vim.api.nvim_win_get_cursor(self._winnr)[1]
+end
+
+-- % set_cursor_lnum %
+function Window:set_cursor_lnum(lnum)
+	vim.api.nvim_win_set_cursor(self._winnr, { lnum, 0 })
+end
 
 -- % get_pos %
 function Window:get_pos()
@@ -104,8 +116,8 @@ function Window:close()
 end
 
 -- % clean %
-function Window:clean()
-	vim.api.nvim_buf_set_lines(self._bufnr, 0, -1, false, {})
+function Window:clean(after_lnum)
+	vim.api.nvim_buf_set_lines(self._bufnr, after_lnum or 0, -1, false, {})
 end
 
 -- % set_window_options %

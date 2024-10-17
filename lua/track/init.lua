@@ -1,18 +1,18 @@
-local config = require("track.config")
-local marks = require("track.marks"):new(config:get().mark)
+local _config = require("track.config")
+local _marks = require("track.marks"):new(_config:get().mark)
 
 local M = {
-	_config = config,
-	_marks = marks,
-	_outline = require("track.outline"):new(config:get().outline, marks),
+	_config = _config,
+	_marks = _marks,
+	_outline = require("track.outline"):new(_config:get().outline, _marks),
 }
 
 -- % setup %
 -- TODO: setup
 function M:setup(new_config)
-	config:set(new_config or {})
-	M._marks:set_config(config:get().mark)
-	M._outline:set_config(config:get().outline)
+	M._config:set(new_config or {})
+	M._marks:set_config(M._config:get().mark)
+	M._outline:set_config(M._config:get().outline)
 end
 
 -- % open_outline %
@@ -39,6 +39,7 @@ function M.add_flow()
 	vim.ui.input({ prompt = "input flow name" }, function(input)
 		if input then
 			M._marks:add_flow(input)
+			M._outline:draw_marks()
 		end
 	end)
 end
@@ -48,6 +49,7 @@ end
 function M.delete_flow()
 	M._select_flow(function(flow)
 		M._marks:delete_flow(flow)
+		M._outline:draw_marks()
 	end)
 end
 
@@ -58,6 +60,7 @@ function M.update_flow()
 		vim.ui.input({ prompt = "input flow name" }, function(input)
 			if input then
 				M._marks:update_flow(flow, input)
+				M._outline:draw_marks()
 			end
 		end)
 	end)
@@ -78,6 +81,7 @@ function M.add_mark()
 		vim.ui.input({ prompt = "input mark text" }, function(input)
 			if input then
 				M._marks:add_mark(file_path, lnum, input, flow)
+				M._outline:draw_marks()
 			end
 		end)
 	end)
@@ -97,11 +101,13 @@ function M.delete_mark()
 
 	if #marks == 1 then
 		M._marks:delete_mark(marks[1]:get_id())
+		M._outline:draw_marks()
 		return
 	end
 
 	M._select_mark(marks, function(mark)
 		M._marks:delete_mark(mark:get_id())
+		M._outline:draw_marks()
 	end)
 end
 
@@ -111,9 +117,11 @@ function M.delete_marks(delete_all)
 		for _, flow in ipairs(M._marks:get_flows()) do
 			M._marks:delete_flow(flow)
 		end
+		M._outline:draw_marks()
 	else
 		M._select_flow(function(flow)
 			M._marks:delete_flow(flow)
+			M._outline:draw_marks()
 		end)
 	end
 end
@@ -146,6 +154,7 @@ function M._update_mark_text(mark, set_default)
 	}, function(input)
 		if input then
 			M._marks:update_mark_text(mark:get_id(), input)
+			M._outline:draw_marks()
 		end
 	end)
 end
@@ -166,12 +175,14 @@ end
 -- TODO: notify_file_path_change
 function M.notify_file_path_change(old, new)
 	M._marks:update_mark_file_path(old, new)
+	M._outline:draw_marks()
 end
 
 -- % notify_file_change %
 -- TODO: notify_file_change
 function M.notify_file_change(file_path)
 	M._marks:update_mark_lnum(file_path)
+	M._outline:draw_marks()
 end
 
 -- % _select_flow %

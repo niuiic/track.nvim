@@ -207,6 +207,7 @@ function Marks:restore_marks(file_path)
 	end)
 	local root_dir = self._config.get_root_dir()
 	for flow, marks in pairs(data.marks) do
+		self._marks[flow] = {}
 		for _, str in ipairs(marks) do
 			self:_add_mark(flow, require("track.mark"):from_string(str, root_dir))
 		end
@@ -225,7 +226,7 @@ function Marks:change_mark_order(id, direction)
 end
 
 function Marks:_move_mark(marks, index, direction)
-	if direction == "forward" then
+	if direction == "backward" then
 		if index == 1 then
 			return false
 		end
@@ -234,7 +235,7 @@ function Marks:_move_mark(marks, index, direction)
 		return true
 	end
 
-	if direction == "backward" then
+	if direction == "forward" then
 		if index == #marks then
 			return false
 		end
