@@ -3,19 +3,31 @@ local Marks = {}
 -- % new %
 function Marks:new(config)
 	local instance = {
-		_config = config,
+		_config = {},
 		_marks = {},
 		_ns_id = vim.api.nvim_create_namespace("track_marks"),
+		_sign_group = "TrackSigns",
+		_sign_name = "TrackSign",
+		_id_count = 0,
 	}
 
-	setmetatable(instance, Marks)
+	setmetatable(instance, { __index = Marks })
+
+	instance:set_config(config)
 
 	return instance
 end
 
 -- % set_config %
+-- TODO: set_config
 function Marks:set_config(config)
 	if config.mark_hl_group ~= self._config.mark_hl_group or config.mark_icon ~= self._config.mark_icon then
+		pcall(vim.fn.sign_undefine, self._sign_name)
+		vim.fn.sign_define(self._sign_name, {
+			text = config.mark_icon,
+			texthl = config.mark_hl_group,
+		})
+
 		for _, marks in pairs(self._marks) do
 			for _, mark in ipairs(marks) do
 				self:_undecorate_mark(mark)
@@ -28,35 +40,44 @@ function Marks:set_config(config)
 end
 
 -- % add_flow %
-function Marks:add_flow(flow)
-	if self._marks[flow] then
+function Marks:add_flow(name)
+	if self._marks[name] then
 		require("track.notify").notify_err("flow already exists")
 		return
 	end
 
-	self._marks[flow] = {}
+	self._marks[name] = {}
 end
 
 -- % delete_flow %
-function Marks:delete_flow(flow)
-	self:delete_marks(flow)
-	self._marks[flow] = nil
+function Marks:delete_flow(name)
+	self:delete_marks(name)
+	self._marks[name] = nil
 end
 
 -- % update_flow %
 function Marks:update_flow(old, new)
 	if not self._marks[old] then
-		require("track.notify").notify_err("flow doesn't exist")
+		require("track.notify").notify_err(string.format("flow %s doesn't exist", old))
 		return
 	end
 
-	self._marks[new] = self._marks[old]
-	self._marks[old] = nil
+	if self._marks[new] then
+		require("track.notify").notify_err(string.format("flow %s exists", new))
+		return
+	end
+
+	self._marks[new], self._marks[old] = self._marks[old], nil
 end
 
 -- % get_flows %
 function Marks:get_flows()
 	return vim.tbl_keys(self._marks)
+end
+
+-- % has_flow %
+function Marks:has_flow(name)
+	return self._marks[name] ~= nil
 end
 
 -- % add_mark %
@@ -75,7 +96,8 @@ function Marks:add_mark(file_path, lnum, text, flow)
 		return
 	end
 
-	local mark = require("track.mark"):new(file_path, lnum, text)
+	self._id_count = self._id_count + 1
+	local mark = require("track.mark"):new(self._id_count, file_path, lnum, text)
 	table.insert(self._marks[flow], mark)
 
 	self:_decorate_mark(mark)
@@ -94,8 +116,8 @@ function Marks:delete_mark(id)
 	end
 end
 
--- % update_mark %
-function Marks:update_mark(id, text)
+-- % update_mark_text %
+function Marks:update_mark_text(id, text)
 	local mark = self:_find_mark(id)
 	if not mark then
 		require("track.notify").notify_err("mark doesn't exist")
@@ -131,6 +153,10 @@ function Marks:get_marks(flow)
 
 	return self._marks
 end
+
+-- % get_marks_by_pos %
+-- TODO: get_marks_by_pos
+function Marks:get_marks_by_pos(file_path, lnum) end
 
 -- % store_marks %
 -- TODO:store_marks
@@ -173,16 +199,46 @@ function Marks:_move_mark(marks, index, direction)
 	error("invalid direction")
 end
 
+-- % update_mark_file_path %
+function Marks:update_file_path(old, new) end
+
+-- % update_mark_lnum %
+
 -- % decorate_mark %
 -- TODO:decorate_mark
-function Marks:_decorate_mark(mark) end
+function Marks:_decorate_mark(mark)
+	local bufnr = self:_get_file_bufnr(mark:get_file_path())
+	if not bufnr then
+		return
+	end
+
+	vim.fn.sign_place(mark:get_id(), self._sign_group, self._sign_name, bufnr, {
+		lnum = mark:get_lnum(),
+		priority = self._config.sign_priority,
+	})
+
+	vim.api.nvim_buf_set_extmark(bufnr, self._ns_id, mark:get_lnum() - 1, 0, {
+		id = mark:get_id(),
+		virt_text = { {
+			string.rep(" ", 8) .. mark:get_text(),
+			self._config.mark_hl_group,
+		} },
+		virt_text_pos = "eol",
+	})
+end
+
+function Marks:_get_file_bufnr(file_path)
+	return vim.iter(vim.api.nvim_list_bufs()):find(function(bufnr)
+		return vim.api.nvim_buf_get_name(bufnr) == file_path
+	end)
+end
 
 -- % undecorate_mark %
 -- TODO:undecorate_mark
 function Marks:_undecorate_mark(mark) end
 
--- % find_mark %
-function Marks:_find_mark(id)
+-- % get_mark %
+function Marks:_get_mark(id)
 	for _, marks in pairs(self._marks) do
 		for _, mark in ipairs(marks) do
 			if mark.id == id then

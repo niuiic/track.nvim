@@ -14,9 +14,12 @@
   - select flow, write content
   - reset flow and content
   - decorate
-  - remark when enter previous buffer
+  - decorate marks when enter new buffer
+  - update mark lnum when buffer text changed
+  - update mark file_path when buffer name changed
+- flow
   - create flow
-  - edit flow name
+  - edit flow
   - delete flow
 
 ## Architecture
@@ -41,16 +44,18 @@ classDiagram
         +open_outline(show_all?: boolean)
         +close_outline()
         %% flow
-        +add_flow(name: string)
-        +delete_flow(name: string)
-        +update_flow(old: string, new: string)
+        +add_flow()
+        +delete_flow()
+        +update_flow()
         %% mark
-        +add_mark(flow?: string)
-        +delete_mark(flow?: string)
-        +update_mark(flow?: string, text?: string)
+        +add_mark()
+        +delete_mark()
+        +update_mark()
         +delete_marks(delete_all?: string)
         +store_marks(file_path: string)
         +restore_marks(file_path: string)
+        +notify_file_path_change(old: string, new: string)
+        +notify_file_change(file_path: string)
     }
 ```
 
@@ -60,12 +65,27 @@ classDiagram
 flowchart LR
     start([start]) --> n1
 
-    n1{file path exists}
+    n1{flow is nil}
     n1 --Y--> n2
-    n1 --N--> error[notify error] --> finish
+    n1 --N--> n3
 
-    n2[notify marks and outline] --> finish
+    n2[select flow] --> n7
 
+    n7{has flow}
+    n7 --Y--> n4
+    n7 --N--> error
+
+    n4[get file_path and lnum] --> n5
+
+    n5[add mark] --> n6
+
+    n6[notify outline] --> finish
+
+    n3{flow exists}
+    n3 --Y--> n4
+    n3 --N--> error
+
+    error[notify error] --> finish
     finish([finish])
 ```
 
@@ -82,28 +102,35 @@ classDiagram
         -config: MarkConfig
         -marks: Map~string, Mark[]~
         -ns_id: number
+        -sign_group: string
+        -sign_name: string
+        -id_count: number
 
         %% new
         +new(config: MarkConfig)$ Marks
         %% config
         +set_config(config: MarkConfig)
         %% flow
-        +add_flow(flow: string)
-        +delete_flow(flow: string)
+        +add_flow(name: string)
+        +delete_flow(name: string)
         +update_flow(old: string, new: string)
         +get_flows() string[]
+        +has_flow(name: string) boolean
         %% mark
         +add_mark(file_path: string, lnum: number, text: string, flow: string)
         +delete_mark(id: number)
-        +update_mark(id: number, text: string)
         +delete_marks(flow?: string)
+        +update_mark_text(id: number, text: string)
+        +update_mark_file_path(old: string, new: string)
+        +update_mark_lnum(file_path: string)
+        +change_mark_order(id: number, direction: 'forward' | 'backward') boolean
         +get_marks(flow?: string) Mark[]
+        +get_marks_by_pos(file_path: string, lnum: number) Mark[] | nil
         +store_marks(file_path: string)
         +restore_marks(file_path: string)
-        +change_mark_order(id: number, direction: 'forward' | 'backward') boolean
         -decorate_mark(mark: Mark)
         -undecorate_mark(mark: Mark)
-        -find_mark(id: number) Mark | nil
+        -get_mark(id: number) Mark | nil
     }
 
     class Mark {
@@ -112,12 +139,14 @@ classDiagram
         -file_path: string
         -lnum: number
 
-        +new(file_path: string, lnum: number, text: string)$ Mark
+        +new(id:number, file_path: string, lnum: number, text: string)$ Mark
         +get_id() number
         +get_lnum() number
+        +set_lnum(lnum: number)
         +get_file_path() string
+        +set_file_path(file_path: string)
         +get_text() string
-        +set_text(text: string, ns_id: number)
+        +set_text(text: string)
     }
 ```
 
@@ -184,7 +213,9 @@ flowchart LR
 
     n1{mark exists}
     n1 --Y--> error(notify error) --> finish
-    n1 --N--> n2
+    n1 --N--> n5
+
+    n5[increase id count] --> n2
 
     n2[create new mark] --> n3
 
@@ -212,7 +243,7 @@ flowchart LR
     finish([finish])
 ```
 
-- Marks.update_mark
+- Marks.update_mark_text
 
 ```mermaid
 flowchart LR
@@ -229,6 +260,25 @@ flowchart LR
     n2[set mark text] --> n3
 
     n3[decorate mark] --> finish
+
+    finish([finish])
+```
+
+- Marks.decorate_mark
+
+```mermaid
+flowchart LR
+    start([start]) --> n3
+
+    n3{file is open}
+    n3 --N--> finish
+    n3 --Y--> n4
+
+    n4[get bufnr] --> n1
+
+    n1[place a sign] --> n2
+
+    n2[set virtual text] --> finish
 
     finish([finish])
 ```
@@ -398,5 +448,6 @@ classDiagram
         +mark_hl_group: string
         +mark_icon: string
         +get_root_dir: () => string | nil
+        +sign_priority: number
     }
 ```

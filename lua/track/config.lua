@@ -5,9 +5,7 @@ function Config:new(config)
 		_config = config,
 	}
 
-	setmetatable(instance, {
-		__index = Config,
-	})
+	setmetatable(instance, { __index = Config })
 
 	return instance
 end
@@ -23,11 +21,12 @@ end
 -- % default_config %
 local default_config = {
 	mark = {
-		mark_hl_group = "CurSearch",
+		mark_hl_group = "WarningMsg",
 		mark_icon = "󰍒",
 		get_root_dir = function()
 			return vim.fs.root(0, ".git") or vim.fn.getcwd()
 		end,
+		sign_priority = 10,
 	},
 	outline = {
 		flow_hl_group = "FloatBorder",
