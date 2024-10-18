@@ -257,14 +257,14 @@ function Outline:_preview_mark()
 		row = self._outline_window:get_cursor_lnum() - 1
 		col = self._config.win_size
 	elseif win_pos == "right" then
-		row = self._outline_window:get_cursor_lnum()
-		col = self._config.win_size * -1 - 2
+		row = self._outline_window:get_cursor_lnum() - 1
+		col = -self._config.preview_win_width - 2
 	elseif win_pos == "top" then
 		row = self._config.win_size
 		col = 0
 	elseif win_pos == "bottom" then
 		col = 0
-		row = -self._config.win_size - self._config.preview_win_height
+		row = -self._config.preview_win_height - 2
 	else
 		error("outline window position is invalid")
 	end
