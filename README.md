@@ -54,7 +54,8 @@ classDiagram
         +update_mark(set_default?: boolean)
         +store_marks(file_path: string)
         +restore_marks(file_path: string)
-        +notify_file_path_change(old: string, new: string)
+        +notify_file_path_change(old: string, new: string | nil)
+        +notify_dir_path_change(old: string, new: string | nil)
         +notify_file_change(file_path: string)
         +decorate_marks_on_file(file_path: string)
     }
@@ -62,7 +63,7 @@ classDiagram
 
 - update marks when file change
 
-Marks would be updated when buffer saved by default.
+Line number of mark would be updated when buffer saved by default.
 
 ```lua
 vim.api.nvim_create_autocmd("BufWritePost", {
@@ -75,22 +76,74 @@ vim.api.nvim_create_autocmd("BufWritePost", {
 })
 ```
 
-It's recommended to update marks when file renamed/moved/deleted. Take `nvim-tree.lua` for example.
+It's recommended to update marks when file/dir renamed/moved/deleted. Take `nvim-tree.lua` for example.
 
 ```lua
--- rename file
+local api = require("nvim-tree.api")
+local opts = function(desc)
+	return { desc = "nvim-tree: " .. desc, buffer = bufnr, noremap = true, silent = true, nowait = true }
+end
+local cut_files = {}
+local cut_dirs = {}
+vim.keymap.set("n", "p", function()
+	local node = api.tree.get_node_under_cursor()
+	api.fs.paste()
+	for _, path in ipairs(cut_files) do
+		require("track").notify_file_path_change(
+			path[1],
+			node.type == "file" and node.parent.absolute_path or node.absolute_path .. "/" .. path[2]
+		)
+	end
+	for _, path in ipairs(cut_dirs) do
+		require("track").notify_dir_path_change(
+			path[1],
+			node.type == "file" and node.parent.absolute_path or node.absolute_path .. "/" .. path[2]
+		)
+	end
+	cut_files = {}
+	cut_dirs = {}
+end, opts("paste"))
 vim.keymap.set("n", "r", function()
 	local node = api.tree.get_node_under_cursor()
-	if node == nil then
-		return
-	end
 	local old = node.absolute_path
 	api.fs.rename()
 	local new = api.tree.get_node_under_cursor().absolute_path
-	require("track").notify_file_path_change(old, new)
+	if node.type == "file" then
+		require("track").notify_file_path_change(old, new)
+	else
+		require("track").notify_dir_path_change(old, new)
+	end
 end, opts("rename"))
-
--- delete file
+vim.keymap.set("n", "d", function()
+	local node = api.tree.get_node_under_cursor()
+	local target_buf = vim.iter(vim.api.nvim_list_bufs()):find(function(x)
+		return string.find(vim.api.nvim_buf_get_name(x), node.absolute_path, 1, true) ~= nil
+	end)
+	if target_buf then
+		require("mini.bufremove").delete(target_buf)
+	end
+	api.fs.remove()
+	if node.type == "file" then
+		require("track").notify_file_path_change(node.absolute_path)
+	else
+		require("track").notify_dir_path_change(node.absolute_path)
+	end
+end, opts("remove"))
+vim.keymap.set("n", "x", function()
+	local node = api.tree.get_node_under_cursor()
+	api.fs.cut()
+	if node.type == "file" then
+		table.insert(
+			cut_files,
+			{ node.absolute_path, string.match(node.absolute_path, node.parent.absolute_path .. "/(.*)") }
+		)
+	else
+		table.insert(
+			cut_dirs,
+			{ node.absolute_path, string.match(node.absolute_path, node.parent.absolute_path .. "/(.*)") }
+		)
+	end
+end, opts("cut"))
 ```
 
 - store/restore marks
