@@ -42,7 +42,7 @@ function Outline:open(flow)
 	self._outline_window = require("track.window"):new_split(self._config.win_pos, self._config.win_size, false)
 
 	self:_set_keymap()
-	self:_set_autocmd(self._config.preview_on_hover)
+	self:_set_autocmd()
 	self:draw_marks()
 end
 
@@ -66,39 +66,44 @@ function Outline:_set_keymap()
 		[self._config.keymap_preview_mark] = self._config.preview_on_hover and function() end or function()
 			self:_preview_mark()
 		end,
+		[self._config.keymap_close_preview_win] = function()
+			if self._preview_window and self._preview_window:is_valid() then
+				self._preview_window:close()
+			end
+		end,
 	})
 end
 
-function Outline:_set_autocmd(preview_on_hover)
+function Outline:_set_autocmd()
 	local prev_cursor_lnum
-	if preview_on_hover then
-		self._outline_window:set_autocmd({ "WinEnter", "CursorMoved" }, function()
-			if not self:_get_cursor_mark() and self._preview_window then
-				self._preview_window:close()
-			end
-			local cursor_lnum = self._outline_window:get_cursor_lnum()
-			if prev_cursor_lnum ~= cursor_lnum then
+	self._outline_window:set_autocmd({ "WinEnter", "CursorMoved" }, function()
+		if not self:_get_cursor_mark() and self._preview_window and self._preview_window:is_valid() then
+			self._preview_window:close()
+		end
+		local cursor_lnum = self._outline_window:get_cursor_lnum()
+		if prev_cursor_lnum ~= cursor_lnum then
+			if self._config.preview_on_hover then
 				self:_preview_mark()
-				if prev_cursor_lnum then
-					vim.api.nvim_buf_clear_namespace(
-						self._outline_window:get_bufnr(),
-						self._ns_id,
-						prev_cursor_lnum - 1,
-						prev_cursor_lnum
-					)
-				end
-				vim.api.nvim_buf_add_highlight(
+			end
+			if prev_cursor_lnum then
+				vim.api.nvim_buf_clear_namespace(
 					self._outline_window:get_bufnr(),
 					self._ns_id,
-					self._config.cursor_line_hl_group,
-					cursor_lnum - 1,
-					0,
-					-1
+					prev_cursor_lnum - 1,
+					prev_cursor_lnum
 				)
 			end
-			prev_cursor_lnum = cursor_lnum
-		end)
-	end
+			vim.api.nvim_buf_add_highlight(
+				self._outline_window:get_bufnr(),
+				self._ns_id,
+				self._config.cursor_line_hl_group,
+				cursor_lnum - 1,
+				0,
+				-1
+			)
+		end
+		prev_cursor_lnum = cursor_lnum
+	end)
 	self._outline_window:set_autocmd({ "WinLeave" }, function()
 		if self._creating_preview_window then
 			return
@@ -112,7 +117,7 @@ function Outline:_set_autocmd(preview_on_hover)
 			)
 		end
 		prev_cursor_lnum = nil
-		if self._preview_window then
+		if self._preview_window and self._preview_window:is_valid() then
 			self._preview_window:close()
 		end
 	end)

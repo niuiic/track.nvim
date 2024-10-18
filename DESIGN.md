@@ -622,6 +622,7 @@ classDiagram
         +keymap_delete_mark: string
         +keymap_update_mark: string
         +keymap_preview_mark: string
+        +keymap_close_preview_win: string
 
         +get_mark_line_text(file_path: string, lnum: string, text: string) string
         +select_window(fn: (winnr: number) => void)

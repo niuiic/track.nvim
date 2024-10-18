@@ -52,6 +52,7 @@ local default_config = {
 		keymap_delete_mark = "d",
 		keymap_update_mark = "e",
 		keymap_preview_mark = "p",
+		keymap_close_preview_win = "q",
 		get_mark_line_text = function(_, _, text)
 			return text
 		end,
