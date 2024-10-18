@@ -58,6 +58,7 @@ classDiagram
         +notify_dir_path_change(old: string, new: string | nil)
         +notify_file_change(file_path: string)
         +decorate_marks_on_file(file_path: string)
+        +navigate_to_outline()
     }
 ```
 
@@ -192,7 +193,7 @@ local default_config = {
 		preview_win_width = preview_win_width,
 		preview_win_height = preview_win_height,
 		preview_on_hover = true,
-		preview_cursor_line_hl_group = "CursorLine",
+		cursor_line_hl_group = "CursorLine",
 		set_default_when_update_mark = false,
 		keymap_move_mark_up = "<A-k>",
 		keymap_move_mark_down = "<A-j>",
@@ -227,7 +228,7 @@ classDiagram
         +win_size: number
         +preview_win_width: number
         +preview_win_height: number
-        +preview_cursor_line_hl_group: string
+        +cursor_line_hl_group: string
         +preview_on_hover: boolean
         +set_default_when_update_mark: boolean
         +keymap_move_mark_up: string

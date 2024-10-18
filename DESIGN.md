@@ -60,6 +60,7 @@ classDiagram
         +notify_dir_path_change(old: string, new: string | nil)
         +notify_file_change(file_path: string)
         +decorate_marks_on_file(file_path: string)
+        +navigate_to_outline()
     }
 ```
 
@@ -446,6 +447,7 @@ classDiagram
         -flow: string | nil
         -line_marks: Map~number, Mark~
         -prev_winnr: number
+        -ns_id: number
 
         %% new
         +new(config: OutlineConfig, marks: Marks)$ Outline
@@ -454,6 +456,7 @@ classDiagram
         %% outline
         +open(flow?: string)
         +close()
+        +jump_to_mark(mark: Mark)
         -is_open() boolean
         %% mark
         +draw_marks()
@@ -485,6 +488,7 @@ classDiagram
         +get_pos() 'left' | 'right' | 'top' | 'bottom' | 'float'
         +close()
         +get_winnr() number
+        +get_bufnr() number
         +enable_edit()
         +disable_edit()
         +is_track_win(bufnr: number)$ boolean
@@ -609,7 +613,7 @@ classDiagram
         +win_size: number
         +preview_win_width: number
         +preview_win_height: number
-        +preview_cursor_line_hl_group: string
+        +cursor_line_hl_group: string
         +preview_on_hover: boolean
         +set_default_when_update_mark: boolean
         +keymap_move_mark_up: string

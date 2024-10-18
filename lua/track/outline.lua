@@ -7,6 +7,7 @@ function Outline:new(config, marks)
 		_marks = marks,
 		_line_marks = {},
 		_creating_preview_window = false,
+		_ns_id = vim.api.nvim_create_namespace("track outline"),
 	}
 
 	setmetatable(instance, { __index = Outline })
@@ -78,6 +79,22 @@ function Outline:_set_autocmd(preview_on_hover)
 			local cursor_lnum = self._outline_window:get_cursor_lnum()
 			if prev_cursor_lnum ~= cursor_lnum then
 				self:_preview_mark()
+				if prev_cursor_lnum then
+					vim.api.nvim_buf_clear_namespace(
+						self._outline_window:get_bufnr(),
+						self._ns_id,
+						prev_cursor_lnum - 1,
+						prev_cursor_lnum
+					)
+				end
+				vim.api.nvim_buf_add_highlight(
+					self._outline_window:get_bufnr(),
+					self._ns_id,
+					self._config.cursor_line_hl_group,
+					cursor_lnum - 1,
+					0,
+					-1
+				)
 			end
 			prev_cursor_lnum = cursor_lnum
 		end)
@@ -85,6 +102,14 @@ function Outline:_set_autocmd(preview_on_hover)
 	self._outline_window:set_autocmd({ "WinLeave" }, function()
 		if self._creating_preview_window then
 			return
+		end
+		if prev_cursor_lnum then
+			vim.api.nvim_buf_clear_namespace(
+				self._outline_window:get_bufnr(),
+				self._ns_id,
+				prev_cursor_lnum - 1,
+				prev_cursor_lnum
+			)
 		end
 		prev_cursor_lnum = nil
 		if self._preview_window then
@@ -278,7 +303,7 @@ function Outline:_preview_mark()
 		false
 	)
 
-	self._preview_window:write_file(mark:get_file_path(), mark:get_lnum(), self._config.preview_cursor_line_hl_group)
+	self._preview_window:write_file(mark:get_file_path(), mark:get_lnum(), self._config.cursor_line_hl_group)
 	self._creating_preview_window = false
 end
 
@@ -286,6 +311,21 @@ end
 function Outline:_get_cursor_mark()
 	local lnum = self._outline_window:get_cursor_lnum()
 	return self._line_marks[lnum]
+end
+
+-- % jump_to_mark %
+function Outline:jump_to_mark(mark)
+	if not self:_is_open() then
+		return
+	end
+
+	for lnum, m in pairs(self._line_marks) do
+		if m:get_id() == mark:get_id() then
+			vim.api.nvim_set_current_win(self._outline_window:get_winnr())
+			vim.api.nvim_win_set_cursor(0, { lnum, 0 })
+			return
+		end
+	end
 end
 
 return Outline

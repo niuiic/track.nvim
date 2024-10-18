@@ -213,4 +213,9 @@ function Window:_tag_track_win()
 	vim.api.nvim_buf_set_var(self._bufnr, "is_track_win", true)
 end
 
+-- % get_bufnr %
+function Window:get_bufnr()
+	return self._bufnr
+end
+
 return Window

@@ -236,4 +236,25 @@ function M.is_enabled(bufnr, winnr)
 	return not require("track.window"):is_track_win(bufnr) and M._config:get().is_enabled(bufnr, winnr)
 end
 
+-- % navigate_to_outline %
+function M.navigate_to_outline()
+	local file_path = vim.api.nvim_buf_get_name(0)
+	local lnum = vim.api.nvim_win_get_cursor(0)[1]
+	local marks = M._marks:get_marks_by_pos(file_path, lnum)
+
+	if #marks == 0 then
+		require("track.notify").notify_warn("no mark exists at this line")
+		return
+	end
+
+	if #marks == 1 then
+		M._outline:jump_to_mark(marks[1])
+		return
+	end
+
+	M._select_mark(marks, function(mark)
+		M._outline:jump_to_mark(mark)
+	end)
+end
+
 return M
