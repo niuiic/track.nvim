@@ -6,6 +6,7 @@ function Outline:new(config, marks)
 		_config = config,
 		_marks = marks,
 		_line_marks = {},
+		_creating_preview_window = false,
 	}
 
 	setmetatable(instance, { __index = Outline })
@@ -40,9 +41,7 @@ function Outline:open(flow)
 	self._outline_window = require("track.window"):new_split(self._config.win_pos, self._config.win_size, false)
 
 	self:_set_keymap()
-	if self._config.preview_on_hover then
-		self:_set_autocmd()
-	end
+	self:_set_autocmd(self._config.preview_on_hover)
 	self:draw_marks()
 end
 
@@ -63,25 +62,30 @@ function Outline:_set_keymap()
 		[self._config.keymap_update_mark] = function()
 			self:_update_mark(self._config.set_default_when_update_mark)
 		end,
-		[self._config.keymap_preview_mark] = function()
+		[self._config.keymap_preview_mark] = self._config.preview_on_hover and function() end or function()
 			self:_preview_mark()
 		end,
 	})
 end
 
-function Outline:_set_autocmd()
+function Outline:_set_autocmd(preview_on_hover)
 	local prev_cursor_lnum
-	self._outline_window:set_autocmd({ "WinEnter", "CursorMoved" }, function()
-		if not self:_get_cursor_mark() and self._preview_window then
-			self._preview_window:close()
-		end
-		local cursor_lnum = self._outline_window:get_cursor_lnum()
-		if prev_cursor_lnum ~= cursor_lnum then
-			self:_preview_mark()
-		end
-		prev_cursor_lnum = cursor_lnum
-	end)
+	if preview_on_hover then
+		self._outline_window:set_autocmd({ "WinEnter", "CursorMoved" }, function()
+			if not self:_get_cursor_mark() and self._preview_window then
+				self._preview_window:close()
+			end
+			local cursor_lnum = self._outline_window:get_cursor_lnum()
+			if prev_cursor_lnum ~= cursor_lnum then
+				self:_preview_mark()
+			end
+			prev_cursor_lnum = cursor_lnum
+		end)
+	end
 	self._outline_window:set_autocmd({ "WinLeave" }, function()
+		if self._creating_preview_window then
+			return
+		end
 		prev_cursor_lnum = nil
 		if self._preview_window then
 			self._preview_window:close()
@@ -246,6 +250,7 @@ function Outline:_preview_mark()
 		self._preview_window:close()
 	end
 
+	self._creating_preview_window = true
 	local row, col
 	local win_pos = self._outline_window:get_pos()
 	if win_pos == "left" then
@@ -274,6 +279,7 @@ function Outline:_preview_mark()
 	)
 
 	self._preview_window:write_file(mark:get_file_path(), mark:get_lnum(), self._config.preview_cursor_line_hl_group)
+	self._creating_preview_window = false
 end
 
 -- % get_cursor_mark %

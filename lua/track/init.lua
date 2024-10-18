@@ -218,9 +218,8 @@ function M.decorate_marks_on_file(file_path)
 end
 
 -- % is_enabled %
-function M.is_enabled(buffer, winnr)
-	local ok, is_disable_track = pcall(vim.api.nvim_buf_get_var, buffer, "disable_track")
-	return (not ok or not is_disable_track) and M._config:get().is_enabled(buffer, winnr)
+function M.is_enabled(bufnr, winnr)
+	return not require("track.window"):is_track_win(bufnr) and M._config:get().is_enabled(bufnr, winnr)
 end
 
 return M

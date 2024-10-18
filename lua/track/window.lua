@@ -10,8 +10,7 @@ function Window:new_split(pos, size, enter)
 
 	local cur_winnr = vim.api.nvim_get_current_win()
 	instance._bufnr = vim.api.nvim_create_buf(false, true)
-	vim.api.nvim_set_option_value("filetype", "track", { buf = instance._bufnr })
-	vim.api.nvim_buf_set_var(instance._bufnr, "disable_track", true)
+	instance:_tag_track_win()
 	if pos == "left" then
 		vim.cmd("topleft " .. size .. "vs")
 	elseif pos == "right" then
@@ -43,8 +42,7 @@ function Window:new_float(relative_winnr, row, col, width, height, enter)
 	setmetatable(instance, { __index = Window })
 
 	instance._bufnr = vim.api.nvim_create_buf(false, true)
-	vim.api.nvim_set_option_value("filetype", "track", { buf = instance._bufnr })
-	vim.api.nvim_buf_set_var(instance._bufnr, "disable_track", true)
+	instance:_tag_track_win()
 	local cur_zindex = vim.api.nvim_win_get_config(0).zindex or 0
 	instance._winnr = vim.api.nvim_open_win(instance._bufnr, false, {
 		relative = "win",
@@ -201,6 +199,18 @@ function Window:disable_edit()
 	vim.api.nvim_set_option_value("modifiable", false, {
 		buf = self._bufnr,
 	})
+end
+
+-- % is_track_win %
+function Window:is_track_win(bufnr)
+	local ok, is_track_win = pcall(vim.api.nvim_buf_get_var, bufnr, "is_track_win")
+	return ok and is_track_win
+end
+
+-- % tag track win %
+function Window:_tag_track_win()
+	vim.api.nvim_set_option_value("filetype", "track", { buf = self._bufnr })
+	vim.api.nvim_buf_set_var(self._bufnr, "is_track_win", true)
 end
 
 return Window

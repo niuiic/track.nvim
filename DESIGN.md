@@ -483,6 +483,7 @@ classDiagram
         +get_winnr() number
         +enable_edit()
         +disable_edit()
+        +is_track_win(bufnr: number)$ boolean
     }
 ```
 
