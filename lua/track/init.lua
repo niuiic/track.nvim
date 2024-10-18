@@ -8,7 +8,6 @@ local M = {
 }
 
 -- % setup %
--- TODO: setup
 function M.setup(new_config)
 	M._config:set(new_config or {})
 	M._marks:set_config(M._config:get().mark)
@@ -16,7 +15,6 @@ function M.setup(new_config)
 end
 
 -- % open_outline %
--- TODO: open_outline
 function M.open_outline(show_all)
 	if show_all then
 		M._outline:open()
@@ -28,13 +26,11 @@ function M.open_outline(show_all)
 end
 
 -- % close_outline %
--- TODO: close_outline
 function M.close_outline()
 	M._outline:close()
 end
 
 -- % add_flow %
--- TODO: add_flow
 function M.add_flow()
 	vim.ui.input({ prompt = "input flow name" }, function(input)
 		if input then
@@ -45,7 +41,6 @@ function M.add_flow()
 end
 
 -- % delete_flow %
--- TODO: delete_flow
 function M.delete_flow()
 	M._select_flow(function(flow)
 		M._marks:delete_flow(flow)
@@ -54,7 +49,6 @@ function M.delete_flow()
 end
 
 -- % update_flow %
--- TODO: update_flow
 function M.update_flow()
 	M._select_flow(function(flow)
 		vim.ui.input({ prompt = "input flow name" }, function(input)
@@ -67,7 +61,6 @@ function M.update_flow()
 end
 
 -- % add_mark %
--- TODO: add_mark
 function M.add_mark()
 	M._select_flow(function(flow)
 		local file_path = vim.api.nvim_buf_get_name(0)
@@ -88,14 +81,13 @@ function M.add_mark()
 end
 
 -- % delete_mark %
--- TODO: delete_mark
 function M.delete_mark()
 	local file_path = vim.api.nvim_buf_get_name(0)
 	local lnum = vim.api.nvim_win_get_cursor(0)[1]
 	local marks = M._marks:get_marks_by_pos(file_path, lnum)
 
 	if #marks == 0 then
-		require("track.notify").notify_err("no mark exists at this line")
+		require("track.notify").notify_warn("no mark exists at this line")
 		return
 	end
 
@@ -127,14 +119,13 @@ function M.delete_marks(delete_all)
 end
 
 -- % update_mark %
--- TODO: update_mark
 function M.update_mark(set_default)
 	local file_path = vim.api.nvim_buf_get_name(0)
 	local lnum = vim.api.nvim_win_get_cursor(0)[1]
 	local marks = M._marks:get_marks_by_pos(file_path, lnum)
 
 	if #marks == 0 then
-		require("track.notify").notify_err("no mark exists at this line")
+		require("track.notify").notify_warn("no mark exists at this line")
 		return
 	end
 
@@ -160,26 +151,22 @@ function M._update_mark_text(mark, set_default)
 end
 
 -- % store_marks %
--- TODO: store_marks
 function M.store_marks(file_path)
 	M._marks:store_marks(file_path)
 end
 
 -- % restore_marks %
--- TODO: restore_marks
 function M.restore_marks(file_path)
 	M._marks:restore_marks(file_path)
 end
 
 -- % notify_file_path_change %
--- TODO: notify_file_path_change
 function M.notify_file_path_change(old, new)
 	M._marks:update_mark_file_path(old, new)
 	M._outline:draw_marks()
 end
 
 -- % notify_file_change %
--- TODO: notify_file_change
 function M.notify_file_change(file_path)
 	M._marks:update_mark_lnum(file_path)
 	M._outline:draw_marks()
@@ -230,8 +217,10 @@ function M.decorate_marks_on_file(file_path)
 	end)
 end
 
+-- % is_enabled %
 function M.is_enabled(buffer, winnr)
-	return M._config:get().is_enabled(buffer, winnr)
+	local ok, is_disable_track = pcall(vim.api.nvim_buf_get_var, buffer, "disable_track")
+	return (not ok or not is_disable_track) and M._config:get().is_enabled(buffer, winnr)
 end
 
 return M

@@ -1,7 +1,6 @@
 local Outline = {}
 
 -- % new %
--- TODO: new
 function Outline:new(config, marks)
 	local instance = {
 		_config = config,
@@ -15,7 +14,6 @@ function Outline:new(config, marks)
 end
 
 -- % set_config %
--- TODO: set_config
 function Outline:set_config(config)
 	self._config = config
 	if self:_is_open() then
@@ -25,7 +23,6 @@ function Outline:set_config(config)
 end
 
 -- % open %
--- TODO: open
 function Outline:open(flow)
 	if self:_is_open() then
 		if self._flow == flow then
@@ -93,7 +90,6 @@ function Outline:_set_autocmd()
 end
 
 -- % close %
--- TODO: close
 function Outline:close()
 	if not self:_is_open() then
 		return
@@ -111,7 +107,6 @@ function Outline:_is_open()
 end
 
 -- % draw_marks %
--- TODO: draw_marks
 function Outline:draw_marks()
 	if not self:_is_open() then
 		return
@@ -180,7 +175,6 @@ function Outline:_move_mark_down()
 end
 
 -- % navigate_to_mark %
--- TODO: navigate_to_mark
 function Outline:_navigate_to_mark()
 	local mark = self:_get_cursor_mark()
 	if not mark then
@@ -211,7 +205,6 @@ function Outline:_navigate_to_mark()
 end
 
 -- % delete_mark %
--- TODO: delete_mark
 function Outline:_delete_mark()
 	local mark = self:_get_cursor_mark()
 	if not mark then
@@ -223,7 +216,6 @@ function Outline:_delete_mark()
 end
 
 -- % update_mark %
--- TODO: update_mark
 function Outline:_update_mark(set_default)
 	local mark = self:_get_cursor_mark()
 	if not mark then
@@ -244,7 +236,6 @@ function Outline:_update_mark(set_default)
 end
 
 -- % preview_mark %
--- TODO: preview_mark
 function Outline:_preview_mark()
 	local mark = self:_get_cursor_mark()
 	if not mark then
@@ -286,7 +277,6 @@ function Outline:_preview_mark()
 end
 
 -- % get_cursor_mark %
--- TODO: _get_cursor_mark
 function Outline:_get_cursor_mark()
 	local lnum = self._outline_window:get_cursor_lnum()
 	return self._line_marks[lnum]

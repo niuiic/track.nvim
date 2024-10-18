@@ -25,9 +25,8 @@ local preview_win_width = math.floor(screen_w * 0.6)
 local preview_win_height = math.floor(screen_h * 0.6)
 
 local default_config = {
-	is_enabled = function(buffer)
-		local ok, is_disable_track = pcall(vim.api.nvim_buf_get_var, buffer, "disable_track")
-		return not ok or not is_disable_track
+	is_enabled = function()
+		return true
 	end,
 	mark = {
 		mark_hl_group = "WarningMsg",

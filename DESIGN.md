@@ -62,33 +62,151 @@ classDiagram
     }
 ```
 
-- App.add_mark
+- App.setup
 
 ```mermaid
 flowchart LR
     start([start]) --> n1
 
-    n1{flow is nil}
+    n1[set config] --> n2
+
+    n2[notify marks and outline] --> finish
+
+    finish([finish])
+```
+
+- App.open_outline
+
+```mermaid
+flowchart LR
+    start([start]) --> n1
+
+    n1{to show all}
     n1 --Y--> n2
     n1 --N--> n3
 
-    n2[select flow] --> n7
+    n2[open outline] --> finish
+
+    n3[select flow] --> n4
+
+    n4[open outline with flow] --> finish
+
+    finish([finish])
+```
+
+- App.add_flow
+
+```mermaid
+flowchart LR
+    start([start]) --> n1
+
+    n1[input flow name] --> n2
+
+    n2[notify marks] --> n3
+
+    n3[notify outline] --> finish
+
+    finish([finish])
+```
+
+- App.delete_flow
+
+```mermaid
+flowchart LR
+    start([start]) --> n1
+
+    n1[select flow] --> n2
+
+    n2[notify marks] --> n3
+
+    n3[notify outline] --> finish
+
+    finish([finish])
+```
+
+- App.update_flow
+
+```mermaid
+flowchart LR
+    start([start]) --> n1
+
+    n1[select flow] --> n4
+
+    n4[input flow name] --> n2
+
+    n2[notify marks] --> n3
+
+    n3[notify outline] --> finish
+
+    finish([finish])
+```
+
+- App.add_mark
+
+```mermaid
+flowchart LR
+    start([start]) --> n7
 
     n7{has flow}
-    n7 --Y--> n4
+    n7 --Y--> n2
     n7 --N--> error
+
+    n2[select flow] --> n4
 
     n4[get file_path and lnum] --> n5
 
-    n5[add mark] --> n6
+    n5[notify marks] --> n6
 
     n6[notify outline] --> finish
 
-    n3{flow exists}
-    n3 --Y--> n4
-    n3 --N--> error
+    error[notify error] --> finish
+    finish([finish])
+```
+
+- App.delete_mark
+
+```mermaid
+flowchart LR
+    start([start]) --> n1
+
+    n1[get cursor marks] --> n2
+
+    n2{has marks}
+    n2 --Y--> n6
+    n2 --N--> error
+
+    n6{just one mark}
+    n6 --Y--> n4
+    n6 --N--> n3
+
+    n3[select mark] --> n4
+
+    n4[notify marks] --> n5
+
+    n5[notify outline] --> finish
 
     error[notify error] --> finish
+    finish([finish])
+```
+
+- App.delete_marks
+
+```mermaid
+flowchart LR
+    start([start]) --> n1
+
+    n1{delete all}
+    n1 --Y--> n2
+    n1 --N--> n3
+
+    n2[delete all flows] --> n4
+
+    n4[notify outline] --> finish
+
+    n3[select flow] --> n5
+
+    n5[delete flow] --> n4
+
     finish([finish])
 ```
 
@@ -161,11 +279,28 @@ classDiagram
 flowchart LR
     start([start]) --> n1
 
-    n1{flow is duplicated}
+    n1{flow exists}
     n1 --Y--> error(notify error) --> finish
     n1 --N--> n2
 
     n2[add new field to marks] --> finish
+
+    finish([finish])
+```
+
+- Marks.delete_flow
+
+```mermaid
+flowchart LR
+    start([start]) --> n1
+
+    n1{flow exists}
+    n1 --Y--> n2
+    n1 --N--> finish
+
+    n2[delete field from marks] --> n3
+
+    n3[delete flow marks] --> finish
 
     finish([finish])
 ```
@@ -200,8 +335,10 @@ flowchart LR
     n1[set config] --> n4
 
     n4{decorate config changed}
-    n4 --Y-->n2
+    n4 --Y-->n5
     n4 --N-->finish
+
+    n5[redefine sign] --> n2
 
     n2[undecorate all marks] --> n3
 

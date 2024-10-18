@@ -19,7 +19,6 @@ function Marks:new(config)
 end
 
 -- % set_config %
--- TODO: set_config
 function Marks:set_config(config)
 	if config.mark_hl_group ~= self._config.mark_hl_group or config.mark_icon ~= self._config.mark_icon then
 		pcall(vim.fn.sign_undefine, self._sign_name)
@@ -51,6 +50,10 @@ end
 
 -- % delete_flow %
 function Marks:delete_flow(name)
+	if not self._marks[name] then
+		return
+	end
+
 	for _, mark in ipairs(self._marks[name]) do
 		self:delete_mark(mark:get_id())
 	end
@@ -106,7 +109,6 @@ function Marks:add_mark(file_path, lnum, text, flow)
 end
 
 -- % _add_mark %
--- TODO: _add_mark
 function Marks:_add_mark(flow, mark)
 	if not self._marks[flow] then
 		self._marks[flow] = {}
@@ -152,7 +154,6 @@ function Marks:get_marks(flow)
 end
 
 -- % get_marks_by_pos %
--- TODO: get_marks_by_pos
 function Marks:get_marks_by_pos(file_path, lnum)
 	local target_marks = {}
 
@@ -170,7 +171,6 @@ function Marks:get_marks_by_pos(file_path, lnum)
 end
 
 -- % store_marks %
--- TODO:store_marks
 function Marks:store_marks(file_path)
 	local marks = {}
 	local root_dir = self._config.get_root_dir()
@@ -193,7 +193,6 @@ function Marks:store_marks(file_path)
 end
 
 -- % restore_marks %
--- TODO:restore_marks
 function Marks:restore_marks(file_path)
 	if not vim.uv.fs_stat(file_path) or vim.fn.isdirectory(file_path) == 1 then
 		require("track.notify").notify_err("file doesn't exist")
@@ -248,7 +247,6 @@ function Marks:_move_mark(marks, index, direction)
 end
 
 -- % update_mark_file_path %
--- TODO: update_mark_file_path
 function Marks:update_mark_file_path(old, new)
 	for _, marks in pairs(self._marks) do
 		for _, mark in ipairs(marks) do
@@ -260,7 +258,6 @@ function Marks:update_mark_file_path(old, new)
 end
 
 -- % update_mark_lnum %
--- TODO: update_mark_lnum
 function Marks:update_mark_lnum(file_path)
 	local signs = self:_get_signs(file_path)
 	if not signs then
@@ -295,7 +292,6 @@ function Marks:_get_signs(file_path)
 end
 
 -- % decorate_mark %
--- TODO:decorate_mark
 function Marks:decorate_mark(mark)
 	local bufnr = self:_get_file_bufnr(mark:get_file_path())
 	if not bufnr then
@@ -319,7 +315,6 @@ function Marks:decorate_mark(mark)
 end
 
 -- % undecorate_mark %
--- TODO:undecorate_mark
 function Marks:_undecorate_mark(mark)
 	local bufnr = self:_get_file_bufnr(mark:get_file_path())
 	if not bufnr then

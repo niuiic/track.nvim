@@ -72,7 +72,6 @@ function Window:is_valid()
 end
 
 -- % write_line %
--- TODO: write_line
 function Window:write_line(lnum, text, hl_group)
 	vim.api.nvim_buf_set_lines(self._bufnr, lnum - 1, lnum, false, { text })
 	if hl_group then
@@ -81,7 +80,6 @@ function Window:write_line(lnum, text, hl_group)
 end
 
 -- % write_file %
--- TODO: write_file
 function Window:write_file(file_path, focus_lnum, hl_group)
 	if not vim.uv.fs_stat(file_path) then
 		return
@@ -112,7 +110,6 @@ function Window:write_file(file_path, focus_lnum, hl_group)
 end
 
 -- % set_keymap %
--- TODO: set_keymap
 function Window:set_keymap(keymap)
 	for key, callback in pairs(keymap) do
 		vim.keymap.set("n", key, callback, {

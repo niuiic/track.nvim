@@ -63,7 +63,6 @@ function Mark:to_string(root_dir)
 end
 
 -- % from_string %
--- TODO: from_string
 function Mark:from_string(str, root_dir)
 	local data = vim.json.decode(str)
 
