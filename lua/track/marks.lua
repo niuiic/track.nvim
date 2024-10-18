@@ -54,9 +54,9 @@ function Marks:delete_flow(name)
 		return
 	end
 
-	for _, mark in ipairs(self._marks[name]) do
+	vim.iter(self._marks[name]):each(function(mark)
 		self:delete_mark(mark:get_id())
-	end
+	end)
 	self._marks[name] = nil
 end
 
