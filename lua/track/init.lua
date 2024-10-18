@@ -162,7 +162,21 @@ end
 
 -- % notify_file_path_change %
 function M.notify_file_path_change(old, new)
-	M._marks:update_mark_file_path(old, new)
+	if new then
+		M._marks:update_mark_file_path(old, new)
+	else
+		M._marks:delete_marks_by_file_path(old)
+	end
+	M._outline:draw_marks()
+end
+
+-- % notify_dir_path_change %
+function M.notify_dir_path_change(old, new)
+	if new then
+		M._marks:update_mark_file_path_dir(old, new)
+	else
+		M._marks:delete_marks_by_file_path_dir(old)
+	end
 	M._outline:draw_marks()
 end
 

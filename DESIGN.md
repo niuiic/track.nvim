@@ -56,7 +56,8 @@ classDiagram
         +update_mark(set_default?: boolean)
         +store_marks(file_path: string)
         +restore_marks(file_path: string)
-        +notify_file_path_change(old: string, new: string)
+        +notify_file_path_change(old: string, new: string | nil)
+        +notify_dir_path_change(old: string, new: string | nil)
         +notify_file_change(file_path: string)
         +decorate_marks_on_file(file_path: string)
     }
@@ -241,8 +242,11 @@ classDiagram
         +add_mark(file_path: string, lnum: number, text: string, flow: string)
         -add_mark(mark: Mark, flow: string)
         +delete_mark(id: number)
+        +delete_marks_by_file_path(file_path: string)
+        +delete_marks_by_file_path_dir(dir_path: string)
         +update_mark_text(id: number, text: string)
         +update_mark_file_path(old: string, new: string)
+        +update_mark_file_path_dir(old: string, new: string)
         +update_mark_lnum(file_path: string)
         +change_mark_order(id: number, direction: 'forward' | 'backward') boolean
         +get_marks(flow?: string) Mark[]

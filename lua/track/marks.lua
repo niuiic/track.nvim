@@ -257,6 +257,17 @@ function Marks:update_mark_file_path(old, new)
 	end
 end
 
+-- % update_mark_file_path_dir %
+function Marks:update_mark_file_path_dir(old, new)
+	for _, marks in pairs(self._marks) do
+		for _, mark in ipairs(marks) do
+			if string.match(mark:get_file_path(), old .. "/.*") then
+				mark:set_file_path(string.gsub(mark:get_file_path(), old, new))
+			end
+		end
+	end
+end
+
 -- % update_mark_lnum %
 function Marks:update_mark_lnum(file_path)
 	local signs = self:_get_signs(file_path)
@@ -341,6 +352,28 @@ function Marks:_get_file_bufnr(file_path)
 	return vim.iter(vim.api.nvim_list_bufs()):find(function(bufnr)
 		return vim.api.nvim_buf_get_name(bufnr) == file_path
 	end)
+end
+
+-- % delete_marks_by_file_path %
+function Marks:delete_marks_by_file_path(file_path)
+	for _, marks in pairs(self._marks) do
+		vim.iter(marks):each(function(mark)
+			if mark:get_file_path() == file_path then
+				self:delete_mark(mark:get_id())
+			end
+		end)
+	end
+end
+
+-- % delete_marks_by_file_path_dir %
+function Marks:delete_marks_by_file_path_dir(dir_path)
+	for _, marks in pairs(self._marks) do
+		vim.iter(marks):each(function(mark)
+			if string.match(mark:get_file_path(), dir_path .. "/.*") then
+				self:delete_mark(mark:get_id())
+			end
+		end)
+	end
 end
 
 return Marks

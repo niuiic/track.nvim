@@ -27,9 +27,11 @@
 
 ## Usage
 
+- showcase
+
 <img src="https://github.com/niuiic/assets/blob/main/track.nvim/usage.gif" />
 
-Available functions.
+- available functions
 
 ```mermaid
 classDiagram
@@ -58,7 +60,44 @@ classDiagram
     }
 ```
 
+- update marks when file change
+
+Marks would be updated when buffer saved by default.
+
+```lua
+vim.api.nvim_create_autocmd("BufWritePost", {
+	callback = function(args)
+		if require("track").is_enabled(args.buf, vim.api.nvim_get_current_win()) then
+			local file_path = vim.api.nvim_buf_get_name(args.buf)
+			require("track").notify_file_change(file_path)
+		end
+	end,
+})
+```
+
+It's recommended to update marks when file renamed/moved/deleted. Take `nvim-tree.lua` for example.
+
+```lua
+-- rename file
+vim.keymap.set("n", "r", function()
+	local node = api.tree.get_node_under_cursor()
+	if node == nil then
+		return
+	end
+	local old = node.absolute_path
+	api.fs.rename()
+	local new = api.tree.get_node_under_cursor().absolute_path
+	require("track").notify_file_path_change(old, new)
+end, opts("rename"))
+
+-- delete file
+```
+
+- store/restore marks
+
 You may need a session plugin for storing/restoring marks. Check [niuiic/multiple-session.nvim](https://github.com/niuiic/multiple-session.nvim).
+
+- preview mark
 
 If there is no highlight on your preview window, try to set filetype.
 
