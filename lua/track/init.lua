@@ -263,4 +263,9 @@ function M.highlight_cursor_marks_on_outline(file_path, lnum)
 	M._outline:highlight_ontline_marks(marks)
 end
 
+-- % is_outline_open %
+function M.is_outline_open()
+	return M._outline:is_open()
+end
+
 return M

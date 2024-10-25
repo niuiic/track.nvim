@@ -44,6 +44,7 @@ classDiagram
         %% outline
         +open_outline(show_all?: boolean)
         +close_outline()
+        +is_outline_open() boolean
         %% flow
         +add_flow()
         +delete_flow()

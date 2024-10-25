@@ -19,7 +19,7 @@ end
 -- % set_config %
 function Outline:set_config(config)
 	self._config = config
-	if self:_is_open() then
+	if self:is_open() then
 		self:close()
 		self:open(self._flow)
 	end
@@ -27,7 +27,7 @@ end
 
 -- % open %
 function Outline:open(flow)
-	if self:_is_open() then
+	if self:is_open() then
 		if self._flow == flow then
 			return
 		end
@@ -142,7 +142,7 @@ end
 
 -- % close %
 function Outline:close()
-	if not self:_is_open() then
+	if not self:is_open() then
 		return
 	end
 
@@ -153,13 +153,13 @@ function Outline:close()
 end
 
 -- % is_open %
-function Outline:_is_open()
+function Outline:is_open()
 	return self._outline_window and self._outline_window:is_valid()
 end
 
 -- % draw_marks %
 function Outline:draw_marks()
-	if not self:_is_open() then
+	if not self:is_open() then
 		return
 	end
 
@@ -417,7 +417,7 @@ end
 
 -- % focus_on_outline_mark %
 function Outline:focus_on_outline_mark(mark)
-	if not self:_is_open() then
+	if not self:is_open() then
 		return
 	end
 
@@ -432,7 +432,7 @@ end
 
 -- % highlight_ontline_marks %
 function Outline:highlight_ontline_marks(marks)
-	if not self:_is_open() then
+	if not self:is_open() then
 		return
 	end
 

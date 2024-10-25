@@ -16,17 +16,25 @@ vim.api.nvim_create_autocmd("BufEnter", {
 	end,
 })
 
+local prev_lnum
 vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
 	callback = function(args)
-		local prev_lnum
-		local winnr = vim.api.nvim_get_current_win()
-		if require("track").is_enabled(args.buf, winnr) then
-			local lnum = vim.api.nvim_win_get_cursor(winnr)[1]
-			if lnum ~= prev_lnum then
-				local file_path = vim.api.nvim_buf_get_name(args.buf)
-				require("track").highlight_cursor_marks_on_outline(file_path, lnum)
-			end
-			prev_lnum = lnum
+		if not require("track").is_outline_open() then
+			return
 		end
+
+		local winnr = vim.api.nvim_get_current_win()
+		if not require("track").is_enabled(args.buf, winnr) then
+			return
+		end
+
+		local lnum = vim.api.nvim_win_get_cursor(winnr)[1]
+		if lnum == prev_lnum then
+			return
+		end
+
+		local file_path = vim.api.nvim_buf_get_name(args.buf)
+		require("track").highlight_cursor_marks_on_outline(file_path, lnum)
+		prev_lnum = lnum
 	end,
 })

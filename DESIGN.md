@@ -48,6 +48,7 @@ classDiagram
         %% outline
         +open_outline(show_all?: boolean)
         +close_outline()
+        +is_outline_open() boolean
         %% flow
         +add_flow()
         +delete_flow()
@@ -469,7 +470,7 @@ classDiagram
         %% outline
         +open(flow?: string)
         +close()
-        -is_open() boolean
+        +is_open() boolean
         %% mark
         +draw_marks()
         +focus_on_outline_mark(mark: Mark)
