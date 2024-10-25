@@ -244,14 +244,14 @@ function Marks:restore_marks(file_path)
 		return
 	end
 
-	local data = vim.json.decode(vim.fn.readfile(file_path)[1])
-	self._id_count = data.id_count
-	self._flows = data.flows
 	vim.iter(self:get_flows()):each(function(flow)
 		self:delete_flow(flow)
 	end)
+	local data = vim.json.decode(vim.fn.readfile(file_path)[1])
+	self._id_count = data.id_count
+	self._flows = data.flows or {}
 	local root_dir = self._config.get_root_dir()
-	for flow, marks in pairs(data.marks) do
+	for flow, marks in pairs(data.marks or {}) do
 		self._marks[flow] = {}
 		for _, str in ipairs(marks) do
 			self:_add_mark(flow, require("track.mark"):from_string(str, root_dir))
