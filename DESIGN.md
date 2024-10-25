@@ -2,14 +2,6 @@
 
 ## Features
 
-- multiple flows
-  - allow multiple marks in different flows on same line
-- list marks in a tree view
-  - change mark order
-  - support level
-  - navigate to mark
-  - preview mark
-  - filter with flow
 - mark
   - select flow, write content
   - reset flow and content
@@ -17,10 +9,21 @@
   - decorate marks when enter new buffer
   - update mark lnum when buffer text changed
   - update mark file_path when buffer name changed
+  - allow multiple marks in different flows on same line
 - flow
   - create flow
   - edit flow
   - delete flow
+- outline
+  - change mark order
+  - change flow order
+  - navigate to mark
+  - preview mark
+  - filter with flow
+  - edit mark content
+  - edit flow content
+  - jump to outline from mark
+  - highlight current mark
 
 ## Architecture
 
@@ -61,6 +64,7 @@ classDiagram
         +notify_file_change(file_path: string)
         +decorate_marks_on_file(file_path: string)
         +navigate_to_outline()
+        +highlight_cursor_mark_on_outline(bufnr: number, lnum: number)
     }
 ```
 
@@ -224,6 +228,7 @@ classDiagram
 
         -config: MarkConfig
         -marks: Map~string, Mark[]~
+        -flows: string[]
         -ns_id: number
         -sign_group: string
         -sign_name: string
@@ -239,6 +244,7 @@ classDiagram
         +update_flow(old: string, new: string)
         +get_flows() string[]
         +has_flow(name: string) boolean
+        +change_flow_order(name: string, direction: 'forward' | 'backward') boolean
         %% mark
         +add_mark(file_path: string, lnum: number, text: string, flow: string)
         -add_mark(mark: Mark, flow: string)
@@ -288,7 +294,9 @@ flowchart LR
     n1 --Y--> error(notify error) --> finish
     n1 --N--> n2
 
-    n2[add new field to marks] --> finish
+    n2[add new field to marks] --> n3
+
+    n3[add new flow to flows] --> finish
 
     finish([finish])
 ```
@@ -303,7 +311,9 @@ flowchart LR
     n1 --Y--> n2
     n1 --N--> finish
 
-    n2[delete field from marks] --> n3
+    n2[delete field from marks] --> n4
+
+    n4[delete flow from flows] --> n3
 
     n3[delete flow marks] --> finish
 
@@ -326,7 +336,9 @@ flowchart LR
 
     n3[add new flow and move marks to it] --> n4
 
-    n4[delete old flow] --> finish
+    n4[delete old flow] --> n5
+
+    n5[replace flow in flows] --> finish
 
     finish([finish])
 ```
@@ -446,6 +458,7 @@ classDiagram
         -preview_window: Window | nil
         -flow: string | nil
         -line_marks: Map~number, Mark~
+        -line_flows: Map~number, flow~
         -prev_winnr: number
         -ns_id: number
 
@@ -467,6 +480,12 @@ classDiagram
         -update_mark(set_default?: boolean)
         -preview_mark()
         -get_cursor_mark() Mark | nil
+        %% flow
+        -move_flow_up()
+        -move_flow_down()
+        -delete_flow()
+        -update_flow(set_default?: boolean)
+        -get_cursor_flow() string | nil
     }
 
     class Window {
@@ -551,7 +570,9 @@ flowchart LR
 
     n2[draw flows and marks] --> n3
 
-    n3[reset line_marks] --> finish
+    n3[reset line_marks] --> n4
+
+    n4[reset line_flows] --> finish
 
     finish([finish])
 ```
@@ -577,23 +598,6 @@ flowchart LR
     finish([finish])
 ```
 
-- App flow/mark method
-
-```mermaid
-flowchart LR
-    start([start]) --> n1
-
-    n1[notify marks] --> n2
-
-    n2{outline is open}
-    n2 --Y--> n3
-    n2 --N--> finish
-
-    n3[notify outline to redraw marks]
-
-    finish([finish])
-```
-
 ### Config
 
 ```mermaid
@@ -615,12 +619,12 @@ classDiagram
         +preview_win_height: number
         +cursor_line_hl_group: string
         +preview_on_hover: boolean
-        +set_default_when_update_mark: boolean
-        +keymap_move_mark_up: string
-        +keymap_move_mark_down: string
+        +set_default_when_update: boolean
+        +keymap_move_up: string
+        +keymap_move_down: string
+        +keymap_delete: string
+        +keymap_update: string
         +keymap_navigate_to_mark: string
-        +keymap_delete_mark: string
-        +keymap_update_mark: string
         +keymap_preview_mark: string
         +keymap_close_preview_win: string
 

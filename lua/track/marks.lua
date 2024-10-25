@@ -5,6 +5,7 @@ function Marks:new(config)
 	local instance = {
 		_config = {},
 		_marks = {},
+		_flows = {},
 		_ns_id = vim.api.nvim_create_namespace("track_marks"),
 		_sign_group = "TrackSigns",
 		_sign_name = "TrackSign",
@@ -46,6 +47,7 @@ function Marks:add_flow(name)
 	end
 
 	self._marks[name] = {}
+	table.insert(self._flows, name)
 end
 
 -- % delete_flow %
@@ -58,6 +60,13 @@ function Marks:delete_flow(name)
 		self:delete_mark(mark:get_id())
 	end)
 	self._marks[name] = nil
+	self:_delete_flow_from_flows(name)
+end
+
+function Marks:_delete_flow_from_flows(name)
+	self._flows = vim.iter(self._flows):filter(function(flow)
+		return flow ~= name
+	end)
 end
 
 -- % update_flow %
@@ -73,16 +82,49 @@ function Marks:update_flow(old, new)
 	end
 
 	self._marks[new], self._marks[old] = self._marks[old], nil
+	for index, flow in ipairs(self._flows) do
+		if flow == old then
+			self._flows[index] = new
+			return
+		end
+	end
 end
 
 -- % get_flows %
 function Marks:get_flows()
-	return vim.tbl_keys(self._marks)
+	return self._flows
 end
 
 -- % has_flow %
 function Marks:has_flow(name)
 	return self._marks[name] ~= nil
+end
+
+-- % change_flow_order %
+function Marks:change_flow_order(name, direction)
+	for index, flow in ipairs(self._flows) do
+		if flow == name then
+			if direction == "backward" then
+				if index == 1 then
+					return false
+				end
+
+				self._flows[index - 1], self._flows[index] = self._flows[index], self._flows[index - 1]
+				return true
+			end
+
+			if direction == "forward" then
+				if index == #self._flows then
+					return false
+				end
+
+				self._flows[index + 1], self._flows[index] = self._flows[index], self._flows[index + 1]
+				return true
+			end
+
+			error("invalid direction")
+		end
+	end
 end
 
 -- % add_mark %
@@ -184,6 +226,7 @@ function Marks:store_marks(file_path)
 	local text = vim.json.encode({
 		id_count = self._id_count,
 		marks = marks,
+		flows = self._flows,
 	})
 
 	local ok = pcall(vim.fn.writefile, { text }, file_path)
@@ -201,6 +244,7 @@ function Marks:restore_marks(file_path)
 
 	local data = vim.json.decode(vim.fn.readfile(file_path)[1])
 	self._id_count = data.id_count
+	self._flows = data.flows
 	vim.iter(self:get_flows()):each(function(flow)
 		self:delete_flow(flow)
 	end)

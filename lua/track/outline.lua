@@ -6,6 +6,7 @@ function Outline:new(config, marks)
 		_config = config,
 		_marks = marks,
 		_line_marks = {},
+		_line_flows = {},
 		_creating_preview_window = false,
 		_ns_id = vim.api.nvim_create_namespace("track outline"),
 	}
@@ -48,20 +49,36 @@ end
 
 function Outline:_set_keymap()
 	self._outline_window:set_keymap({
-		[self._config.keymap_move_mark_up] = function()
-			self:_move_mark_up()
+		[self._config.keymap_move_up] = function()
+			if self:_get_cursor_flow() then
+				self:_move_flow_up()
+			else
+				self:_move_mark_up()
+			end
 		end,
-		[self._config.keymap_move_mark_down] = function()
-			self:_move_mark_down()
+		[self._config.keymap_move_down] = function()
+			if self:_get_cursor_flow() then
+				self:_move_flow_down()
+			else
+				self:_move_mark_down()
+			end
 		end,
 		[self._config.keymap_navigate_to_mark] = function()
 			self:_navigate_to_mark()
 		end,
-		[self._config.keymap_delete_mark] = function()
-			self:_delete_mark()
+		[self._config.keymap_delete] = function()
+			if self:_get_cursor_flow() then
+				self:_delete_flow()
+			else
+				self:_delete_mark()
+			end
 		end,
-		[self._config.keymap_update_mark] = function()
-			self:_update_mark(self._config.set_default_when_update_mark)
+		[self._config.keymap_update] = function()
+			if self:_get_cursor_flow() then
+				self:_update_flow(self._config.set_default_when_update)
+			else
+				self:_update_mark(self._config.set_default_when_update)
+			end
 		end,
 		[self._config.keymap_preview_mark] = self._config.preview_on_hover and function() end or function()
 			self:_preview_mark()
@@ -169,6 +186,7 @@ function Outline:_draw_flow_marks(flow, start_lnum)
 	end
 
 	self._outline_window:write_line(start_lnum, flow, self._config.flow_hl_group)
+	self._line_flows[start_lnum] = flow
 	for index, mark in ipairs(marks) do
 		self._outline_window:write_line(
 			start_lnum + index,
@@ -206,6 +224,85 @@ function Outline:_move_mark_down()
 		self:draw_marks()
 		self._outline_window:set_cursor_lnum(self._outline_window:get_cursor_lnum() + 1)
 	end
+end
+
+-- % move_flow_up %
+function Outline:_move_flow_up()
+	local flow = self:_get_cursor_flow()
+	if not flow then
+		return
+	end
+
+	local moved = self._marks:change_flow_order(flow, "backward")
+	if moved then
+		self:draw_marks()
+		local lnum = self:_get_flow_lnum(flow)
+		if lnum then
+			self._outline_window:set_cursor_lnum(lnum)
+		end
+	end
+end
+
+function Outline:_get_flow_lnum(name)
+	for lnum, flow in pairs(self._line_flows) do
+		if flow == name then
+			return lnum
+		end
+	end
+end
+
+-- % move_flow_down %
+function Outline:_move_flow_down()
+	local flow = self:_get_cursor_flow()
+	if not flow then
+		return
+	end
+
+	local moved = self._marks:change_flow_order(flow, "forward")
+	if moved then
+		self:draw_marks()
+		local lnum = self:_get_flow_lnum(flow)
+		if lnum then
+			self._outline_window:set_cursor_lnum(lnum)
+		end
+	end
+end
+
+-- % delete_flow %
+function Outline:_delete_flow()
+	local flow = self:_get_cursor_flow()
+	if not flow then
+		return
+	end
+
+	self._marks:delete_flow(flow)
+	self:draw_marks()
+end
+
+-- % update_flow %
+function Outline:_update_flow(set_default)
+	local flow = self:_get_cursor_flow()
+	if not flow then
+		return
+	end
+
+	vim.ui.input({
+		prompt = "input flow name",
+		default = set_default and flow or nil,
+	}, function(input)
+		if not input then
+			return
+		end
+
+		self._marks:update_flow(flow, input)
+		self:draw_marks()
+	end)
+end
+
+-- % get_cursor_flow %
+function Outline:_get_cursor_flow()
+	local lnum = self._outline_window:get_cursor_lnum()
+	return self._line_flows[lnum]
 end
 
 -- % navigate_to_mark %

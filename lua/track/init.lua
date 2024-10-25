@@ -257,4 +257,8 @@ function M.navigate_to_outline()
 	end)
 end
 
+-- % highlight_cursor_mark_on_outline %
+-- TODO:highlight_cursor_mark_on_outline
+function M.highlight_cursor_mark_on_outline() end
+
 return M

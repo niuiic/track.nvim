@@ -45,16 +45,17 @@ local default_config = {
 		preview_win_height = preview_win_height,
 		preview_on_hover = true,
 		cursor_line_hl_group = "CursorLine",
-		set_default_when_update_mark = false,
-		keymap_move_mark_up = "<A-k>",
-		keymap_move_mark_down = "<A-j>",
+		set_default_when_update = false,
 		keymap_navigate_to_mark = "<cr>",
-		keymap_delete_mark = "d",
-		keymap_update_mark = "e",
+		keymap_move_up = "<A-k>",
+		keymap_move_down = "<A-j>",
+		keymap_delete = "d",
+		keymap_update = "e",
 		keymap_preview_mark = "p",
 		keymap_close_preview_win = "q",
 		get_mark_line_text = function(_, _, text)
-			return text
+			local space, content = string.match(text, "([%s]*)(.*)")
+			return space .. "- " .. content
 		end,
 		select_window = function() end,
 	},
