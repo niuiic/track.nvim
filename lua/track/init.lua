@@ -248,17 +248,19 @@ function M.navigate_to_outline()
 	end
 
 	if #marks == 1 then
-		M._outline:jump_to_mark(marks[1])
+		M._outline:focus_on_outline_mark(marks[1])
 		return
 	end
 
 	M._select_mark(marks, function(mark)
-		M._outline:jump_to_mark(mark)
+		M._outline:focus_on_outline_mark(mark)
 	end)
 end
 
--- % highlight_cursor_mark_on_outline %
--- TODO:highlight_cursor_mark_on_outline
-function M.highlight_cursor_mark_on_outline() end
+-- % highlight_cursor_marks_on_outline %
+function M.highlight_cursor_marks_on_outline(file_path, lnum)
+	local marks = M._marks:get_marks_by_pos(file_path, lnum)
+	M._outline:highlight_ontline_marks(marks)
+end
 
 return M

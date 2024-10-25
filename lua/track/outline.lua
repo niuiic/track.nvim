@@ -415,8 +415,8 @@ function Outline:_get_cursor_mark()
 	return self._line_marks[lnum]
 end
 
--- % jump_to_mark %
-function Outline:jump_to_mark(mark)
+-- % focus_on_outline_mark %
+function Outline:focus_on_outline_mark(mark)
 	if not self:_is_open() then
 		return
 	end
@@ -428,6 +428,45 @@ function Outline:jump_to_mark(mark)
 			return
 		end
 	end
+end
+
+-- % highlight_ontline_marks %
+function Outline:highlight_ontline_marks(marks)
+	if not self:_is_open() then
+		return
+	end
+
+	local lnums = self:_get_marks_lnums(marks)
+
+	vim.api.nvim_buf_clear_namespace(self._outline_window:get_bufnr(), self._ns_id, 0, -1)
+
+	for _, lnum in ipairs(lnums) do
+		vim.api.nvim_buf_add_highlight(
+			self._outline_window:get_bufnr(),
+			self._ns_id,
+			self._config.cursor_line_hl_group,
+			lnum - 1,
+			0,
+			-1
+		)
+	end
+end
+
+function Outline:_get_marks_lnums(marks)
+	local marks_lnum = {}
+	for lnum, mark in pairs(self._line_marks) do
+		marks_lnum[mark:get_id()] = lnum
+	end
+
+	local lnums = {}
+	for _, mark in ipairs(marks) do
+		local lnum = marks_lnum[mark:get_id()]
+		if lnum then
+			table.insert(lnums, lnum)
+		end
+	end
+
+	return lnums
 end
 
 return Outline

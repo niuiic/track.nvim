@@ -64,7 +64,7 @@ classDiagram
         +notify_file_change(file_path: string)
         +decorate_marks_on_file(file_path: string)
         +navigate_to_outline()
-        +highlight_cursor_mark_on_outline(bufnr: number, lnum: number)
+        +highlight_cursor_marks_on_outline(file_path: string, lnum: number)
     }
 ```
 
@@ -469,10 +469,11 @@ classDiagram
         %% outline
         +open(flow?: string)
         +close()
-        +jump_to_mark(mark: Mark)
         -is_open() boolean
         %% mark
         +draw_marks()
+        +focus_on_outline_mark(mark: Mark)
+        +highlight_ontline_marks(marks: Mark[])
         -move_mark_up()
         -move_mark_down()
         -navigate_to_mark()
