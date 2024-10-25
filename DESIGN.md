@@ -2,6 +2,10 @@
 
 ## Features
 
+- flow
+  - create flow
+  - edit flow
+  - delete flow
 - mark
   - select flow, write content
   - reset flow and content
@@ -10,10 +14,6 @@
   - update mark lnum when buffer text changed
   - update mark file_path when buffer name changed
   - allow multiple marks in different flows on same line
-- flow
-  - create flow
-  - edit flow
-  - delete flow
 - outline
   - change mark order
   - change flow order

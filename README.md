@@ -13,11 +13,12 @@
 - outline
   - list flows and marks
     - filter with flow
-  - move mark up/down
+  - move mark/flow up/down
   - navigate to mark
   - preview mark
-  - edit mark
-  - delete mark
+  - edit mark/flow
+  - delete mark/flow
+  - highlight current marks
 - mark
   - decorate
   - edit text
@@ -59,6 +60,7 @@ classDiagram
         +notify_file_change(file_path: string)
         +decorate_marks_on_file(file_path: string)
         +navigate_to_outline()
+        +highlight_cursor_marks_on_outline(file_path: string, lnum: number)
     }
 ```
 
@@ -194,16 +196,17 @@ local default_config = {
 		preview_win_height = preview_win_height,
 		preview_on_hover = true,
 		cursor_line_hl_group = "CursorLine",
-		set_default_when_update_mark = false,
-		keymap_move_mark_up = "<A-k>",
-		keymap_move_mark_down = "<A-j>",
+		set_default_when_update = false,
 		keymap_navigate_to_mark = "<cr>",
-		keymap_delete_mark = "d",
-		keymap_update_mark = "e",
+		keymap_move_up = "<A-k>",
+		keymap_move_down = "<A-j>",
+		keymap_delete = "d",
+		keymap_update = "e",
 		keymap_preview_mark = "p",
 		keymap_close_preview_win = "q",
 		get_mark_line_text = function(_, _, text)
-			return text
+			local space, content = string.match(text, "([%s]*)(.*)")
+			return space .. "- " .. content
 		end,
 		select_window = function() end,
 	},
@@ -231,13 +234,14 @@ classDiagram
         +preview_win_height: number
         +cursor_line_hl_group: string
         +preview_on_hover: boolean
-        +set_default_when_update_mark: boolean
-        +keymap_move_mark_up: string
-        +keymap_move_mark_down: string
+        +set_default_when_update: boolean
+        +keymap_move_up: string
+        +keymap_move_down: string
+        +keymap_delete: string
+        +keymap_update: string
         +keymap_navigate_to_mark: string
-        +keymap_delete_mark: string
-        +keymap_update_mark: string
         +keymap_preview_mark: string
+        +keymap_close_preview_win: string
 
         +get_mark_line_text(file_path: string, lnum: string, text: string) string
         +select_window(fn: (winnr: number) => void)
