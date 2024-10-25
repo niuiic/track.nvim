@@ -64,9 +64,11 @@ function Marks:delete_flow(name)
 end
 
 function Marks:_delete_flow_from_flows(name)
-	self._flows = vim.iter(self._flows):filter(function(flow)
-		return flow ~= name
-	end)
+	self._flows = vim.iter(self._flows)
+		:filter(function(flow)
+			return flow ~= name
+		end)
+		:totable()
 end
 
 -- % update_flow %
