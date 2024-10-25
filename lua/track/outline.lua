@@ -164,6 +164,7 @@ function Outline:draw_marks()
 	end
 
 	self._line_marks = {}
+	self._line_flows = {}
 
 	self._outline_window:enable_edit()
 	local start_lnum = 1
