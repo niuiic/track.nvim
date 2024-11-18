@@ -51,7 +51,10 @@ function Mark:to_string(root_dir)
 	local file_path = self._file_path
 
 	if root_dir then
-		file_path = string.match(file_path, root_dir .. "(.*)")
+		local start = string.find(file_path, root_dir, 1, true)
+		if start == 1 then
+			file_path = string.sub(file_path, string.len(root_dir) + 1)
+		end
 	end
 
 	return vim.json.encode({
